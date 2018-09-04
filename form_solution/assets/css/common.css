@@ -1,0 +1,99 @@
+/* resize */
+blockquote,body,button,dd,dl,dt,fieldset,h1,h2,h3,h4,h5,h6,hr,input,lengend,li,ol,p,pre,td,textarea,th,ul {
+    margin: 0;
+    padding: 0;
+}
+
+body,button,input,select,textarea {
+    font-family: Arial,Verdana,"Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size: .24rem;
+    color: #000;
+}
+
+ins,u {
+    text-decoration: none;
+}
+
+b,h1,h2,h3,h4,h5,h6,strong {
+    font-weight: normal;
+}
+
+.i {
+    font-style: italic;
+}
+
+.b {
+    font-weight: bold;
+}
+
+.ins {
+    text-decoration: underline;
+}
+
+.del {
+    text-decoration: line-through;
+}
+
+address,cite,dfn,em,i,var {
+    font-style: normal;
+}
+
+code,kbd,pre,samp,tt {
+    font-family: "Courier New",Courier,monospace;
+}
+
+ol,ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    outline: 0;
+    color: inherit;
+}
+
+abbr[title],acronym[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+q:after,q:before {
+    content: '';
+}
+
+button,input,select,textarea {
+    outline: 0;
+    font-size: 100%;
+}
+
+legend {
+    color: #000;
+}
+
+fieldset,img {
+    border: none;
+}
+
+table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+a,button {
+    cursor: pointer;
+}
+
+.a {
+    cursor: pointer;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+textarea {
+    resize: none;
+}
+/* end resize */
