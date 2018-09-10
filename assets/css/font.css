@@ -1,0 +1,54 @@
+/* tkfont */
+@font-face {font-family: "tkfont";
+	src: url('../font/iconfont.eot?t=1473849124');
+	src: url('../font/iconfont.eot?t=1473849124#iefix') format('embedded-opentype'),
+		 url('../font/iconfont.woff?t=1473849124') format('woff'),
+		 url('../font/iconfont.ttf?t=1473849124') format('truetype'),
+		 url('../font/iconfont.svg?t=1473849124#iconfont') format('svg');
+}
+.tf {
+	display: inline-block;
+	font: normal normal normal 14px/1 'tkfont';
+	font-size: inherit;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.tf-fw {
+	width: 1.28571429em;
+	text-align: center;
+}
+.tf-spin {
+    -webkit-animation: tf-spin 2s infinite linear;
+    animation: tf-spin 2s infinite linear;
+}
+@-webkit-keyframes tf-spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg)
+	}
+	100% {
+		-webkit-transform: rotate(359deg);
+		transform: rotate(359deg)
+	}
+}
+@keyframes tf-spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg)
+	}
+	100% {
+		-webkit-transform: rotate(359deg);
+		transform: rotate(359deg)
+	}
+}
+
+.tf-form-unit-clear:before {
+	content: '\e62a';
+}
+.tf-form-psw-eye:before {
+	content: '\e661';
+}
+.tf-form-psw-eye.rev:before {
+	content: '\e723';
+}

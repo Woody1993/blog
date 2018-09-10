@@ -61,7 +61,7 @@
 		}
 
 		var self = this;
-		function fun(index, loop) {
+		function loop(index) {
 			var r = rule[index];
 			if (r.type == 'async') {
 				$.ajax({
@@ -74,36 +74,30 @@
 					dataType: r.dataType || 'text',
 					success: function(msg) {
 						msg = JSON.parse(msg);
-						loop(index, callback(msg.state, r), loop);
+						callback(index, msg.state, r);
 					}
 				});
 			} else {
-				loop(index, callback(vaild.call(self, value, r), r), loop);
+				callback(index, vaild.call(self, value, r), r);
 			}
 		}
-		fun(0, function(index, state, loop) {
-			if (index == rule.length-1) {
-				if (next) next(state);
-			} else {
-				if (state) {
-					fun(++index, loop);
-				} else {
-					if (next) next(state);
-				}
-			}
-		});
+		loop(0);
 
-		function callback(state, r) {
+		function callback(index, state, r) {
 			if (state)  {
 				if (!r.success || r.success(name, r.type) !== false) {
 					self.opt.success(name, r.type);
 				}
-				return true;
 			} else {
 				if (!r.error || r.error(name, r.type, r.msg || '提交数据有误，请检查后重试') !== false) {
 					self.opt.error(name, r.type, r.msg || '提交数据有误，请检查后重试');
 				}
-				return false;
+			}
+
+			if (index == rule.length-1 || !state) {
+				if (next) next(state);
+			} else {
+				loop(++index);
 			}
 		}
 	}
@@ -137,7 +131,7 @@
 					arr.push(name);
 				}
 
-				function fun(index) {
+				function loop(index) {
 					var name = arr[index];
 					item.call(self, name, json[name], opt.rule[name], function(s) {
 						if (!s) {
@@ -160,11 +154,11 @@
 								});
 							}
 						} else {
-							fun(++index);
+							loop(++index);
 						}
 					});
 				}
-				fun(0);
+				loop(0);
 			} catch(e) {
 				console.log(e);
 			}
