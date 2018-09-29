@@ -19,7 +19,7 @@
 					'<p>'+(opt.title)+'</p>',
 					'<input type="hidden" name="'+opt.name+'">',
 				'</dt>',
-				'<dd class="d-select-bd" style="width:'+opt.width+';">',
+				'<dd class="d-select-bd">',
 					(opt.search
 						? [
 							'<form><div class="d-select-search">',
@@ -47,16 +47,18 @@
 		var $dt = $obj.find('.d-select-hd');
 		var $dd = $obj.find('.d-select-bd');
 
-		$obj.click(function(e) {
-			e.stopPropagation();
-		});
-
 		$dt.click(function() {
 			if (me.isSpread) {
 				me.fold();
 			} else {
-				me.spread();
+				setTimeout(function() {
+					me.spread();
+				});
 			}
+		});
+
+		$dd.click(function(e) {
+			e.stopPropagation();
 		});
 
 		$(document).click(function() {
@@ -147,9 +149,9 @@
 			callback: function() {} // 选择时的回调函数
 		}, opt || {});
 
-		this.box = $(opt.box + ':first');
+		this.box = $(opt.box);
 
-		if (this.box.length == 0) return this;
+		if (this.box.length != 1) return this;
 
 		this.opt = opt;
 		this.disabled = opt.disabled ? true : false;
@@ -278,6 +280,8 @@
 			$dt.find('input').val(me.opt.deOptVal);
 			$dd.find('.d-select-option.z-crt').removeClass('z-crt').find('.d-select-option-chk').attr('checked', false);
 			this.crtIds = [];
+			
+			return this;
 		},
 
 		select: function(id) {
@@ -312,16 +316,22 @@
 				me.fold();
 				me.opt.callback(optData.id, optData.name, optData.data);
 			}
+
+			return this;
 		},
 
 		disable: function() {
 			this.disabled = true;
-			this.obj.addClass('z-dis');
+			this.fold().obj.addClass('z-dis');
+
+			return this;
 		},
 
 		enable: function() {
 			this.disabled = false;
 			this.obj.removeClass('z-dis');
+
+			return this;
 		},
 
 		spread: function() {
@@ -337,13 +347,16 @@
 			function fun() {
 				$dd.css({
 					left: $dt[0].getBoundingClientRect().left,
-					top: $dt[0].getBoundingClientRect().top + opt.height
+					top: $dt[0].getBoundingClientRect().top + opt.height,
+					width: $dt.innerWidth() + 2
 				});
 				_timer = setTimeout(function() {
 					fun();
 				}, 10);
 			}
 			fun();
+
+			return this;
 		},
 
 		fold: function() {
@@ -352,6 +365,8 @@
 			var $dd = $obj.find('.d-select-bd');
 			$dd.hide();
 			clearTimeout(_timer);
+
+			return this;
 		}
 	}
 })(jQuery, window, document);
