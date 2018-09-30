@@ -8,14 +8,14 @@
 		psw: /^[\@A-Za-z0-9\!\#\$\%\^\&\*\.\~]{6,20}$/  // 密码，6-20位，包含字母数字以及!、@、#、$、%、^、&、*、.、~
 	};
 
-	var vaild = function(value, json) {
-		if (value === '' && ['regexp', 'range'].indexOf(json.type) > -1) {
+	var checkRule = function(value, json) {
+		if (['regexp', 'range'].indexOf(json.type) > -1 && (value === '' || value === undefined)) {
 			return true;
 		}
 
 		switch(json.type) {
 		case 'empty':
-			if (value === '') return false;
+			if (value === '' || value === undefined) return false;
 			break;
 			
 		case 'regexp':
@@ -38,12 +38,12 @@
 
 		case 'range':
 			var num = parseFloat(value);
-			if (num != num) return false;
+			if (num != num) return true;
 			if (num < json.range[0] || num > json.range[1]) return false;
 			break;
 
 		case 'check':
-			var len = value ? value.split(',').length : 0;
+			var len = value ? value.length : 0;
 			if (len < json.total[0] || len > json.total[1]) return false;
 			break;
 
@@ -55,9 +55,10 @@
 		return true;
 	}
 
-	var item = function(name, value, rule, next) {
+	var checkItem = function(name, value, rule, next) {
 		if (!rule || !rule.length) {
 			if (next) next(true);
+			return;
 		}
 
 		var self = this;
@@ -78,19 +79,19 @@
 					}
 				});
 			} else {
-				callback(index, vaild.call(self, value, r), r);
+				callback(index, checkRule.call(self, value, r), r);
 			}
 		}
 		loop(0);
 
 		function callback(index, state, r) {
 			if (state)  {
-				if (!r.success || r.success(name, r.type) !== false) {
-					self.opt.success(name, r.type);
+				if (!r.pass || r.pass(name, r.type) !== false) {
+					self.opt.pass(name, r.type);
 				}
 			} else {
-				if (!r.error || r.error(name, r.type, r.msg || '提交数据有误，请检查后重试') !== false) {
-					self.opt.error(name, r.type, r.msg || '提交数据有误，请检查后重试');
+				if (!r.fail || r.fail(name, r.type, r.msg || '提交数据有误，请检查后重试') !== false) {
+					self.opt.fail(name, r.type, r.msg || '提交数据有误，请检查后重试');
 				}
 			}
 
@@ -102,70 +103,123 @@
 		}
 	}
 
+	function serialize($obj, opt) {
+		opt = $.extend({
+			overlay: false  // 相同的name值是否覆盖，否则以字符串数组的形式叠加
+		}, opt || {});
+
+		if ($obj[0].tagName == 'TABLE') {
+			var arr = [];
+			$obj.find('tbody tr').each(function() {
+				arr.push(serialize($(this), opt));
+				$(this).find('input[name], select[name], textarea[name]').addClass('j-serialized');
+			});
+
+			return arr;
+		} else {
+			var obj = {};
+			var arr = [];
+			$obj.find('table[name]').each(function() {
+				var name = $(this).attr('name');
+				obj[name] = serialize($(this), opt);
+			});
+
+			$obj.find('input[name], select[name], textarea[name]').each(function() {
+				if ($(this).hasClass('j-serialized')) return;
+
+				var name = $(this).prop('name').replace(/\[\d\]$/g, '');
+				if ($(this).prop('type') == 'checkbox') {
+					if ($(this).prop('checked')) {
+						obj[name] = obj[name] || [];
+						obj[name].push($(this).val());
+						if (arr.indexOf(name) == -1) arr.push(name);
+					}
+				} else if ($(this).prop('type') == 'radio') {
+					if ($(this).prop('checked')) {
+						obj[name] = $(this).val();
+					}
+				} else {
+					if (opt.overlay || !obj[name]) {
+						obj[name] = $(this).val();
+					} else {
+						if (!obj[name].push) obj[name] = [obj[name]];
+						obj[name].push($(this).val());
+						if (arr.indexOf(name) == -1) arr.push(name);
+					}
+				}
+			});
+
+			for (var i in arr) {
+				//obj[arr[i]] = JSON.stringify(obj[arr[i]]);
+			}
+
+			$obj.find('.j-serialized').removeClass('j-serialized');
+
+			return obj;
+		}
+	};
+
 	var main = function(opt) {
 		var self = this;
 		this.opt = opt = $.extend({
 			form: '',
 			vaildAll: false,
 			rule: {},
-			success: function() {},
-			error: function() {}
+			pass: function() {},
+			fail: function() {}
 		}, opt || {});
 
-		var $form = $(opt.form);
-		if (!$form.length) return;
+		this.$form = $(opt.form);
+		if (!this.$form.length) return;
 
-		$form.find('input, textarea').change(function() {
+		this.$form.find('input, textarea').change(function() {
 			var name = $(this).attr('name');
 			if (!name) return;
-			item.call(self, name, $(this).val(), opt.rule[name])
+			checkItem.call(self, name, $(this).val(), opt.rule[name])
 		});
 
-		$form.submit(function() {
-			try {
-				var json = $(this).serialize();
-				var state = true;
-
-				var arr = [];
-				for (var name in opt.rule) {
-					arr.push(name);
-				}
-
-				function loop(index) {
-					var name = arr[index];
-					item.call(self, name, json[name], opt.rule[name], function(s) {
-						if (!s) {
-							state = false;
-							if (!opt.vaildAll) {
-								return;
-							}
-						}
-
-						if (index == arr.length-1) {
-							if (state) {
-								$.ajax({
-									url: 'assets/json/test.json',
-									data: json,
-									dataType: 'text',
-									success: function(msg) {
-										msg = JSON.parse(msg);
-										console.log('已提交')
-									}
-								});
-							}
-						} else {
-							loop(++index);
-						}
-					});
-				}
-				loop(0);
-			} catch(e) {
-				console.log(e);
-			}
-
-			return false;
-		});
+		return this;
 	}
 
-	w.formVaild = main;
+	w.formObject = main;
+
+	main.prototype = {
+		vaildate: function(callback) {
+			var me = this;
+			var opt = this.opt;
+			var json = this.serialize();
+			var state = true;
+
+			var arr = [];
+			for (var name in opt.rule) {
+				arr.push(name);
+			}
+
+			function loop(index) {
+				var name = arr[index];
+				checkItem.call(me, name, json[name], opt.rule[name], function(s) {
+					if (!s) {
+						state = false;
+						if (!opt.vaildAll) {
+							return;
+						}
+					}
+
+					if (index == arr.length-1) {
+						if (state) {
+							callback && callback();
+						}
+					} else {
+						loop(++index);
+					}
+				});
+			}
+			loop(0);
+		},
+
+		serialize: function() {
+			var me = this;
+			return serialize(me.$form);
+		}
+	}
 })(window, jQuery, document);
