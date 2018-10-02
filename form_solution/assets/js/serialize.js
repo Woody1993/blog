@@ -62,10 +62,8 @@ $.fn.voluation = function(data) {
 		if ($o[0].tagName == 'TABLE') {
 
 		} else {
-			if ($o.prop('type') == 'checkbox') {
-
-			} else if ($o.prop('type') == 'radio') {
-				
+			if ($o.prop('type') == 'checkbox' || $o.prop('type') == 'radio') {
+				$o.chk();
 			} else {
 				$o.val(data[i]);
 			}

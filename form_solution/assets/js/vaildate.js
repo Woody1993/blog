@@ -17,7 +17,7 @@
 		case 'empty':
 			if (value === '' || value === undefined) return false;
 			break;
-			
+
 		case 'regexp':
 			var state = true;
 			for (var i in json.regexp) {
@@ -149,10 +149,6 @@
 				}
 			});
 
-			for (var i in arr) {
-				//obj[arr[i]] = JSON.stringify(obj[arr[i]]);
-			}
-
 			$obj.find('.j-serialized').removeClass('j-serialized');
 
 			return obj;
@@ -220,6 +216,30 @@
 		serialize: function() {
 			var me = this;
 			return serialize(me.$form);
+		},
+
+		voluation: function(data) {
+			var me = this;
+			for (var i in data) {
+				var $o = $('[name="' + i + '"]');
+				if ($o.length == 0) continue;
+				if ($o[0].tagName == 'TABLE') {
+
+				} else {
+					if ($o.prop('type') == 'checkbox' || $o.prop('type') == 'radio') {
+						$o.each(function() {
+							if (
+								$(this).val() == data[i] ||
+								(data[i].indexOf && data[i].indexOf($(this).val()) > -1)
+							) {
+								$(this).chk('chk');
+							}
+						});
+					} else {
+						$o.val(data[i]);
+					}
+				}
+			}
 		}
 	}
 })(window, jQuery, document);

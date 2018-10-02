@@ -101,58 +101,392 @@
 
 /* check */
 .u-chk {
-    display: -webkit-inline-flex;
-    display: inline-flex;
-    align-items: center;
-    height: .48rem;
+	display: -webkit-inline-flex;
+	display: inline-flex;
+	align-items: center;
+	height: .48rem;
 }
 .u-chk input {
 	display: none;
 }
 .u-chk span {
-    margin: 0 .1rem;
-    font-size: .3rem;
-    color: #333;
-    text-indent: 0;
+	margin: 0 .1rem;
+	font-size: .3rem;
+	color: #333;
+	text-indent: 0;
 }
 .u-radio ins {
-    position: relative;
-    width: .38rem;
-    height: .38rem;
-    border: 1px solid #9b9b9b;
-    border-radius: 100%;
-    background-color: #fff;
+	position: relative;
+	width: .38rem;
+	height: .38rem;
+	border: 1px solid #9b9b9b;
+	border-radius: 100%;
+	background-color: #fff;
 }
 .u-radio.z-chk ins:after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: .24rem;
-    height: .24rem;
-    border-radius: 100%;
-    margin-top: -.12rem;
-    margin-left: -.12rem;
-    background: #333;
+	content: '';
+	display: block;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: .24rem;
+	height: .24rem;
+	border-radius: 100%;
+	margin-top: -.12rem;
+	margin-left: -.12rem;
+	background: #333;
 }
 
 .u-checkbox ins {
-    width: .38rem;
-    height: .38rem;
-    border: 1px solid #9b9b9b;
-    line-height: .38rem;
-    color: #fff;
-    text-align: center;
-    text-indent: 0;
-    background: #fff;
+	width: .38rem;
+	height: .38rem;
+	border: 1px solid #9b9b9b;
+	line-height: .38rem;
+	color: #fff;
+	text-align: center;
+	text-indent: 0;
+	background: #fff;
 }
 .u-checkbox ins:before {
-    content: '\e65a';
-    font-family: 'tkfont';
-    font-size: .3rem;
+	content: '\e65a';
+	font-family: 'tkfont';
+	font-size: .3rem;
 }
 .u-checkbox.z-chk ins {
-    color: #333;
+	color: #333;
 }
 /* end check */
+
+/* popup */
+.d-anim {
+	-webkit-animation: bounceIn .4s;
+	animation: bounceIn .4s;
+}
+@-webkit-keyframes bounceIn {
+	0% {
+		opacity:0;
+		-webkit-transform:scale(.5);
+		transform:scale(.5)
+	}
+	100% {
+		opacity:1;
+		-webkit-transform:scale(1);
+		transform:scale(1)
+	}
+}
+@keyframes bounceIn {
+	0% {
+		opacity:0;
+		-webkit-transform:scale(.5);
+		transform:scale(.5)
+	}
+	100% {
+		opacity:1;
+		-webkit-transform:scale(1);
+		transform:scale(1)
+	}
+}
+
+	/* alert */
+	.d-alert-box {
+		z-index: 999;
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(255,255,255,0);
+	}
+	.d-alert {
+		z-index: 102;
+		display: none;
+		position: fixed;
+		left: 50%;
+		top: 50%;
+		min-width: 2rem;
+		padding: .1rem .2rem;
+		border-radius: .06rem;
+		color: #fff;
+		text-align: center;
+		word-wrap: break-word;
+		background: rgba(0, 0, 0, .8);
+	}
+	.d-alert-box .d-alert {
+		position: absolute;
+	}
+	.d-alert.z-success {
+		color: #0edc5b;
+	}
+	.d-alert.z-error {
+		color: #f55;
+	}
+	.d-alert .tf {
+		padding-top: .2rem;
+		font-size: .8rem;
+	}
+	.d-alert p {
+		padding: .15rem 0;
+		line-height: .4rem;
+		font-size: .26rem;
+	}
+	/* end alert */
+
+	/* message */
+	.d-message {
+		display: -webkit-flex;
+		display: flex;
+		position: fixed;
+		left: 0;
+		right: 0;
+		height: .8rem;
+		line-height: .8rem;
+		font-size: .26rem;
+		color: #fff;
+		background: rgba(0, 0, 0, .8);
+		transition: all .2s ease;
+	}
+	.d-message.top {
+		top: -.8rem;
+	}
+	.d-message.top.z-show {
+		top: 0;
+	}
+	.d-message.bottom {
+		bottom: -.8rem;
+	}
+	.d-message.bottom.z-show {
+		bottom: 0;
+	}
+	.d-message p {
+    	flex-grow: 10;
+		flex-wrap: wrap;
+		padding: 0 .5em;
+		text-indent: .5em;
+	}
+	.d-message-btn {
+		display: -webkit-flex;
+		display: flex;
+	}
+	.d-message-btn a {
+		display: block;
+		padding: 0 .5em;
+		white-space: nowrap;
+	}
+	.d-message-close {
+		display: block;
+		align-items: flex-end;
+		width: .8rem;
+		min-width: .8rem;
+		text-align: center;
+	}
+	/* end message */
+
+.d-shade {
+	display: none;
+	z-index: 100;
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(0,0,0,.2);
+}
+
+.d-loading-box {
+	display: none;
+	z-index: 999;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(255,255,255,0);
+}
+.d-loading {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: -50px;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 6px;
+	line-height: .7rem;
+	color: #eee;
+	text-align: center;
+	background: rgba(0,0,0,0.6);
+}
+.d-loading .tf {
+	margin-top: .3rem;
+	font-size: .92rem;
+}
+.d-loading p {
+	line-height: .4rem;
+	font-size: .26rem;
+}
+
+.d-confirm, .d-dialog {
+	z-index: 102;
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	width: 6.7rem;
+	border-radius: .1rem;
+	margin-left: -3.35rem;
+	margin-top: -2.05rem;
+	overflow: hidden;
+	background: #fff;
+	box-shadow: 0 0 .08rem 0 rgba(0,0,0,.3);
+}
+.d-dialog {
+	z-index: 101;
+}
+.confirm-tt, .dialog-tt {
+	position: relative;
+	height: .89rem;
+	border-bottom: .015rem solid #eee;
+	line-height: .89rem;
+	font-size: .3rem;
+	text-align: center;
+}
+.dialog-tt {
+	border: none;
+}
+.confirm-tt a,
+.dialog-tt a {
+	display: block;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: .89rem;
+	line-height: .89rem;
+	font-size: .34rem;
+	color: #888;
+	text-align: center;
+}
+.confirm-ct {
+	position: relative;
+	height: 2.5rem;
+	padding: 0 .5rem 0 2rem;
+	color: #f55;
+}
+.confirm-ct .tf {
+	position: absolute;
+	left: 1rem;
+	top: .82rem;
+	font-size: .8rem;
+	color: #ff5212;
+}
+.confirm-ct p {
+	position: absolute;
+	left: 2rem;
+	top: 50%;
+	right: .5rem;
+	line-height: .34rem;
+	font-size: .28rem;
+	margin-top: -.17rem;
+}
+
+.confirm-ft button,
+.dialog-ft button {
+	position: relative;
+	width: 50%;
+	height: .78rem;
+	border: none;
+	font-size: .3rem;
+	overflow: hidden;
+}
+.dialog-ft.z-btn3 button {
+	width: 33.333%;
+}
+.confirm-ft button.s-ok,
+.dialog-ft button.s-ok {
+	color: #fff;
+	background: #20bdd9;
+}
+.confirm-ft button.s-cancel,
+.dialog-ft button.s-cancel {
+	color: #666;
+	background: #eee;
+}
+.confirm-ft button.s-green,
+.dialog-ft button.s-green {
+	color: #fff;
+	background: #52c685;
+}
+.confirm-ft button.s-red,
+.dialog-ft button.s-red {
+	color: #fff;
+	background: #f55;
+}
+.dialog-ft button input {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	opacity: 0;
+}
+.btm-dialog {
+	z-index: 102;
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: -100vh;
+	background: #fff;
+	-webkit-transition: bottom .4s ease;
+	-moz-transition: bottom .4s ease;
+	-o-transition: bottom .4s ease;
+	transition: bottom .4s ease;
+}
+.btm-dialog.z-show {
+	bottom: 0 !important;
+}
+
+.btm-dialog-tt {
+	position: relative;
+	height: .9rem;
+	line-height: .9rem;
+	font-size: .3rem;
+	text-align: center;
+}
+.btm-dialog-tt a {
+	display: block;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: .9rem;
+	color: #888;
+}
+
+.btm-dialog-ct {
+	position: relative;
+}
+.btm-dialog-ct:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+
+.btm-dialog-ft .u-fixed-btn {
+	position: static;
+}
+
+.d-dialog-text {
+	padding-left: 1em;
+	padding: .1rem .6rem .4rem;
+}
+.d-dialog-text b {
+	float: left;
+	width: 1em;
+	margin-left: -1em;
+	font-family: '宋体';
+	color: #f55;
+}
+.d-dialog-text textarea {
+	width: 100%;
+	height: 1.7rem;
+	padding: .06rem .1rem;
+	border: 1px solid #ddd;
+	line-height: .36rem;
+}
+/* end popup */

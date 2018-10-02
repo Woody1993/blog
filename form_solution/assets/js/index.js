@@ -1,4 +1,6 @@
 (function(w, $, d) {
+	w.form;
+
 	index = {
 		ready: function() {
 			index.listener();
@@ -20,7 +22,7 @@
 				return false;
 			});
 
-			var form = new formObject({
+			form = new formObject({
 				form: 'form',
 				rule: {
 					'username': [{
@@ -107,6 +109,20 @@
 					console.log('字段名：'+name+';校验类型：'+type+';校验结果：false');
 				}
 			});
+		},
+
+		setData: function() {
+			form.voluation({
+				"username": "15068749507",
+				"password": "123456",
+				"phone": "15068749507",
+				"email": "245195432@qq.com",
+				"sex": "man",
+				"age": "25",
+				"address": "凯旋路445号",
+				"interest": ["看电影", "听音乐"],
+				"agree": ["1"]
+			})
 		}
 	}
 
