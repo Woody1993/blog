@@ -128,6 +128,7 @@
 				if ($(this).hasClass('j-serialized')) return;
 
 				var name = $(this).prop('name').replace(/\[\d\]$/g, '');
+				if (!name) return;
 				if ($(this).prop('type') == 'checkbox') {
 					if ($(this).prop('checked')) {
 						obj[name] = obj[name] || [];
@@ -159,6 +160,7 @@
 		var self = this;
 		this.opt = opt = $.extend({
 			form: '',
+			itemFmt: {},
 			vaildAll: false,
 			rule: {},
 			pass: function() {},
@@ -215,7 +217,14 @@
 
 		serialize: function() {
 			var me = this;
-			return serialize(me.$form);
+			var opt = this.opt;
+			var data = serialize(me.$form)
+			for (var i in opt.itemFmt) {
+				if (data[i] !== undefined) {
+					data[i] = opt.itemFmt[i](data[i]);
+				}
+			}
+			return data;
 		},
 
 		voluation: function(data) {
