@@ -25,7 +25,7 @@ $(function() {
 		},
 
 		width: '100%',
-		height: 'auto',//$('#box').height(),
+		height: '460',//$('#box').height(),
 		indexFormatter: function(index) {
 			return '#'+index;
 		},
@@ -36,12 +36,12 @@ $(function() {
 			console.log(data);
 		},
 
-		selectModel: 2,
-		callSelectModel: 1,
+		selectModel: 1,
+		callSelectModel: 2,
 		selectAll: true,
 		colModel: [
 			{
-				title: '订单信息订单信息订单信息订单信息',
+				title: '订单信息',
 				frozen: 'left',
 				subCol: [
 					{
@@ -61,7 +61,10 @@ $(function() {
 								var className = 's-fc-blue';
 							}
 							return '<span class="'+(className||'')+'">'+value+'</span>';
-						}
+						},
+						sortBy: 'both', //none || asc || desc || both
+						sortFrom: 'local', //ajax || local
+						sortModel: 'string' //number || string
 					}, {
 						title: '订单号',
 						name: 'orderId',
@@ -89,103 +92,22 @@ $(function() {
 					}
 				]
 			}, {
-				title: '客户信息',
-				subCol: [
-					{
-						title: '用户名',
-						name: 'username',
-						sortBy: 'asc', //none || asc || desc || both
-						sortFrom: 'ajax', //ajax || local
-						sortModel: 'number', //number || string
-					}, {
-						title: '姓名',
-						name: 'name',
-						sortBy: 'both',
-						sortParam: 'nameSort',
-						overflow: false,
-						sortInit: 'desc'
-					}, {
-						title: '收货人信息',
-						subCol: [
-							{
-								title: '收货人',
-								name: 'receiverName',
-								overflow: false
-							}, {
-								title: '收货人电话',
-								name: 'productPhone',
-								width: 140
-							}
-						]
-					}
-				]
-			}, {
-				title: '下单时间',
-				name: 'buyDate',
-				width: 160
-			}, {
-				title: '付款金额',
-				name: 'paySum',
-				count: true,
-				countFormatter: function(value, count) {
-					return value+'<br />'+count.paySum;
-				}
-			}, {
-				title: '付款渠道',
-				name: 'payType'
-			}, {
-				title: '付款时间',
-				name: 'payDate',
-				width: 160
-			}, {
-				title: '订单总额',
-				name: 'sum',
-				count: true,
-				countFormatter: function(value, count) {
-					return value+'<br />'+count.sum;
-				}
-			}, {
-				title: '运费',
-				name: 'logSum',
-				count: true,
-				countFormatter: function(value, count) {
-					return value+'<br />'+count.logSum;
-				}
-			}, {
-				title: '代发费',
-				name: 'dfSum',
-				count: true,
-				countFormatter: function(value, count) {
-					return value+'<br />'+count.dfSum;
-				}
-			}, {
-				title: '购买数量',
-				name: 'numCount',
-				count: true,
-				countFormatter: function(value, count) {
-					return value+'<br />'+count.numCount;
-				}
-			}, {
-				title: '订单类型',
-				name: 'orderType'
-			}, {
-				title: '销售渠道',
-				name: 'saleType'
-			}, {
-				title: '备注',
-				name: 'remark'
-			}, {
 				title: '商家信息',
 				subCol: [
 					{
-						title: '业务经理',
-						name: 'ywjl'
-					}, {
-						title: '门店',
-						name: 'md'
-					}, {
-						title: '业务员',
-						name: 'ywy'
+						title: '业务归属',
+						subCol: [
+							{
+								title: '业务经理',
+								name: 'ywjl'
+							}, {
+								title: '门店',
+								name: 'md'
+							}, {
+								title: '业务员',
+								name: 'ywy'
+							}
+						]
 					}, {
 						title: '下单人',
 						name: 'xdr'
@@ -245,7 +167,7 @@ $(function() {
 			});
 		}
 
-		grid.insertRow((parseInt($('#insertIndex').val()) || 0), arr);
+		grid.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
 	});
 
 	$('#delete').click(function() {
