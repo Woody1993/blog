@@ -105,14 +105,14 @@
 
 	function serialize($obj, opt) {
 		opt = $.extend({
-			overlay: false  // 相同的name值是否覆盖，否则以字符串数组的形式叠加
+			overlay: true  // 相同的name值是否覆盖，否则以字符串数组的形式叠加
 		}, opt || {});
 
 		if ($obj[0].tagName == 'TABLE') {
 			var arr = [];
 			$obj.find('tbody tr').each(function() {
 				arr.push(serialize($(this), opt));
-				$(this).find('input[name], select[name], textarea[name]').addClass('j-serialized');
+				$(this).find('input[name], select[name], textarea[name]').attr('ignore', 'true');
 			});
 
 			return arr;
@@ -125,7 +125,10 @@
 			});
 
 			$obj.find('input[name], select[name], textarea[name]').each(function() {
-				if ($(this).hasClass('j-serialized')) return;
+				if ($(this).attr('ignore')) {
+					$(this).removeAttr('ignore');
+					return;
+				}
 
 				var name = $(this).prop('name').replace(/\[\d\]$/g, '');
 				if (!name) return;
@@ -150,8 +153,6 @@
 				}
 			});
 
-			$obj.find('.j-serialized').removeClass('j-serialized');
-
 			return obj;
 		}
 	};
@@ -160,11 +161,16 @@
 		var self = this;
 		this.opt = opt = $.extend({
 			form: '',
+			url: '',
+			method: 'post',
+			dataType: 'json',
 			itemFmt: {},
 			vaildAll: false,
 			rule: {},
 			pass: function() {},
-			fail: function() {}
+			fail: function() {},
+			beforeSubmit: function() {},
+			submit: function() {}
 		}, opt || {});
 
 		this.$form = $(opt.form);
@@ -175,6 +181,20 @@
 			if (!name) return;
 			checkItem.call(self, name, $(this).val(), opt.rule[name])
 		});
+
+		this.$form.submit(function() {
+        	if (opt.beforeSubmit.call(this) === false) return false;
+            this.vaildate(function() {
+				$.ajax({
+					url: opt.url,
+					type: opt.method,
+					dataType: opt.dataType,
+					data: this.serialize(),
+					success: opt.submit
+				});
+            }.bind(this));
+			return false;
+		}.bind(this));
 
 		return this;
 	}
@@ -241,7 +261,7 @@
 								$(this).val() == data[i] ||
 								(data[i].indexOf && data[i].indexOf($(this).val()) > -1)
 							) {
-								$(this).chk('chk');
+								$(this).prop('checked', 'true');
 							}
 						});
 					} else {

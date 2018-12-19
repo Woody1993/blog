@@ -25,7 +25,7 @@ $(function() {
 		},
 
 		width: '100%',
-		height: '460',//$('#box').height(),
+		height: 'auto',//$('#box').height(),
 		indexFormatter: function(index) {
 			return '#'+index;
 		},

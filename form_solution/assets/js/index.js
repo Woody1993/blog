@@ -7,21 +7,6 @@
 		},
 
 		listener: function() {
-			$('form').submit(function() {
-				form.vaildate(function() {
-					$.ajax({
-						url: 'assets/json/test.json',
-						data: form.serialize(),
-						dataType: 'text',
-						success: function(msg) {
-							msg = JSON.parse(msg);
-							console.log('已提交')
-						}
-					});
-				});
-				return false;
-			});
-
 			form = new formObject({
 				form: 'form',
 				rule: {

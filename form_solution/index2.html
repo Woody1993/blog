@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<title>表单序列化</title>
 	<script src="../jquery.js"></script>
-	<script src="assets/js/serialize.js"></script>
+	<script src="assets/js/vaildate.js"></script>
 </head>
 <body>
 	<form action="">
@@ -80,21 +80,108 @@
 			</tr>
 		</table>
 
-		<button type="button" id="get">格式化</button>
+		<button type="submit" id="get">格式化</button>
 		<button type="button" id="set">回填</button>
 	</form>
 
 	<script>
 		$(function() {
-		    $('#get').click(function() {
-		        console.log(
-		            $('form').serialize()
-		        );
-		    });
+		    
+			form = new formObject({
+				form: 'form',
+				rule: {
+					'username': [{
+						type: 'empty',
+						msg: '用户名不能为空'
+					}, {
+						type: 'async',
+						url: 'assets/json/test.json',
+						name: 'username',
+						data: {
+							type: 1
+						},
+						pass: function(value) {
+
+						},
+						fail: function(value) {
+
+						},
+						msg: '用户名已存在'
+					}, {
+						type: 'regexp',
+						regexp: ['phone', 'email'],
+						callback: {
+							phone: function(value) {
+								$('input[name="phone"]').val(value);
+							},
+							email: function(value) {
+								$('input[name="email"]').val(value);
+							}
+						},
+						msg: '请输入正确的手机号或邮箱'
+					}],
+
+					'sex': [{
+						type: 'empty'
+					}],
+
+					'age': [{
+						type: 'range',
+						range: [18, 30],
+						msg: '年龄必须在18岁至30岁之间'
+					}, {
+						type: 'function',
+						fun: function(value) {
+							return value != 20;
+						},
+						msg: '年龄不能为20岁'
+					}],
+
+					'interest': [{
+						type: 'check',
+						total: [1,3],
+						msg: '请勾选1至3项'
+					}, {
+						type: 'async',
+						url: 'assets/json/test.json',
+						name: 'interest',
+						data: {
+							type: 2
+						},
+						pass: function(value) {
+						},
+						fail: function(value) {
+
+						},
+						msg: '兴趣已存在'
+					}],
+
+					'agree': [{
+						type: 'empty',
+						msg: '请阅读并同意用户协议',
+						pass: function(value) {
+						}
+					}]
+				},
+
+				vaildAll: true,
+
+				pass: function(name, type) {
+					console.log('字段名：'+name+';校验类型：'+type+';校验结果：true');
+				},
+
+				fail: function(name, type, msg) {
+					console.log('字段名：'+name+';校验类型：'+type+';校验结果：false');
+				},
+
+				beforeSubmit: function() {
+					console.log(this.serialize());
+				}
+			});
 
 		    $('#set').click(function() {
 		    	var data = {"table":[{"text":"1","radio":"1","checkbox":["1"],"select":"1","img":["1","3"]},{"text":"2","radio":"2","checkbox":["1","2"],"select":"2","img":["2","4"]}],"text":"测试","radio":"1","checkbox":["1","2"],"select":"1","file":["1,2","3"]};
-		    	$('form').voluation(data);
+		    	form.voluation(data);
 		    });
 		});
 	</script>

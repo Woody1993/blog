@@ -1,7 +1,20 @@
 /**
  * Version: 2.0
  * Author: Woody
- * Description: 创建时可省略new操作符，重构表格布局逻辑，优化滚动联动交互，优化表格行操作方法（类数组化）
+ * Description: 功能大纲：
+ * 				1.创建时可省略new操作符 √
+ * 				2.重构表格布局逻辑 √
+ * 				3.优化滚动联动交互 √
+ * 				4.优化自适应方法 ...
+ * 				5.优化表格行操作方法（类数组） ...
+ * 				6.优化排序方法 ...
+ * 				7.优化汇总行 ...
+ * 				8.优化分页栏 ...
+ * 				9.增加系统列概念（序号列，复选列，分级列等）
+ * 				10.支持多级子行
+ * 				11.列宽拖拽调整
+ * 				12.整列隐藏
+ * 				13.整列拖拽排序
  * Date: 2018-11-01
 **/
 
@@ -683,44 +696,40 @@
 		},
 
 		resize: function() {
-			var me = this;
 			var opt = _opts[this.id];
 			var $box = this.box;
-			var $th = $box.find('.d-grid-hd');
-			var $allTb = $box.find('.d-grid-bd');
-			var $center = $box.find('.d-grid-main');
-			var $centerTb = $center.find('.d-grid-bd');
-			var $centerGrid = $centerTb.find('table');
-			var $frozeRight = $box.find('.d-grid-froze-right');
-			var $scrollX = $box.find('.d-grid-scroll-x');
-			var $scrollY = $box.find('.d-grid-scroll-y');
 			var width = this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 0) / 100 : width;
 
 			this.root.dom.width(width - 2);
-			if (this.root.body.main.dom.find('table').innerWidth() > this.root.body.main.dom.width()) {
-				var sh = _scrollSize
-			} else {
-				var sh = 0
-			}
 
+			var sw = sh = 0;
 			if (this.height == 'auto') {
-				var height = this.getData().length * _rowHeight + (sh ? sh : -1);
+				var height = this.getData().length * _rowHeight + (sh ? sh : 0);
 				this.root.dom.height('auto');
-				this.root.body.main.dom.height(height);
-				this.root.body.left.dom.height(height - sh);
-				this.root.body.right.dom.height(height - sh);
+
+				if (this.root.body.main.dom.find('table').innerWidth() > this.root.body.main.dom.width()) {
+					sh = _scrollSize;
+				}
+
+				this.root.body.main.dom.height(height + sh);
 			} else {
 				var height = this.height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
 				this.root.dom.height(this.height - 2);
 				this.root.body.main.dom.height(height);
+
+				if (this.root.body.main.dom.find('table').height() > this.root.body.main.dom.height()) {
+					sw = _scrollSize;
+				}
+
+				if (this.root.body.main.dom.find('table').innerWidth() + sw > this.root.body.main.dom.width()) {
+					sh = _scrollSize;
+
+					if (this.root.body.main.dom.find('table').height() + sh > this.root.body.main.dom.height()) {
+						sw = _scrollSize;
+					}
+				}
 				this.root.body.left.dom.height(height - sh);
 				this.root.body.right.dom.height(height - sh);
-			}
-
-			if (this.root.body.main.dom.find('table').height() - 1 > this.root.body.main.dom.height()) {
-				var sw = _scrollSize
-			} else {
-				var sw = 0
 			}
 			this.root.head.right.dom.css('padding-right', sw);
 			this.root.body.right.dom.css('right', sw);
