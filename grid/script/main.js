@@ -1,15 +1,4 @@
 $(function() {
-	var data = [];
-	$.ajax({
-		url: 'json/data.json',
-		dataType: 'text',
-		async: false,
-		success: function(msg) {
-			data = (new Function("return " + msg))();
-		}
-	});
-
-	
 	grid = dGrid({
 		box: '#box',
 		url: 'json/data.json',
@@ -25,9 +14,8 @@ $(function() {
 		},
 
 		width: '100%',
-		height: 'auto',//$('#box').height(),
-		indexFormatter: function(index) {
-			return '#'+index;
+		height: function() {
+			return window.gridHeight || '600'
 		},
 		rowOnClick: function(obj, data, e) {
 			//console.log(data);
@@ -41,81 +29,140 @@ $(function() {
 		selectAll: true,
 		colModel: [
 			{
-				title: '订单信息',
+				title: '序号',
+				sys: 'index',
 				frozen: 'left',
+				width: 50,
+				align: 'center',
+				dataFormatter: function(index) {
+					return '#'+index;
+				},
+				count: true,
+				countFormatter: function(value, count) {
+					return '本页合计<br />总合计';
+				}
+			}, {
+				title: '状态',
+				frozen: 'left',
+				name: 'status',
+				width: 50,
+				sortBy: 'both', //none || asc || desc || both
+				sortFrom: 'local', //ajax || local
+				sortModel: 'string' //number || string
+			}, {
+				title: '订单号',
+				frozen: 'left',
+				name: 'orderNum',
+				width: 90,
+				dataFormatter: function(value, row) {
+					return value;
+				},
+				titleFormatter: false
+			}, {
+				title: '买家信息',
 				subCol: [
 					{
-						title: '状态',
-						name: 'status',
-						width: 80,
-						count: function() {
-							return 1;
-						},
-						countFormatter: function(value, count) {
-							return '本页合计<br />总合计';
-						},
-						dataFormatter: function(value, row) {
-							if (value == '待发货') {
-								var className = 's-fc-red';
-							} else if (value == '待付款') {
-								var className = 's-fc-blue';
-							}
-							return '<span class="'+(className||'')+'">'+value+'</span>';
-						},
-						sortBy: 'both', //none || asc || desc || both
-						sortFrom: 'local', //ajax || local
-						sortModel: 'string' //number || string
+						title: '头像',
+						name: 'icon',
+						width: 60,
+						dataFormatter: function(value) {
+							return '<div style="width:70px;height:70px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'" /></div>';
+						}
 					}, {
-						title: '订单号',
-						name: 'orderId',
-						width: 100,
-						editable: true,
-						editEvent: {
-							click: function() {
-								console.log('click');
-							},
-							focus: function() {
-								console.log('focus')
-							},
-							blur: function() {
-								console.log('blur');
-							},
-							change: function() {
-								console.log('change');
-							}
-						},
-						iptClassName: 'j-test j-test2',
-						dataFormatter: function(value, row) {
-							return '订单号：'+value;
-						},
-						titleFormatter: false
+						title: '用户名',
+						name: 'username',
+						width: 60
+					}, {
+						title: '姓名',
+						name: 'name',
+						width: 60
+					}, {
+						title: '电话',
+						name: 'phone',
+						width: 80
 					}
 				]
 			}, {
-				title: '商家信息',
+				title: '配送信息',
 				subCol: [
 					{
-						title: '业务归属',
-						subCol: [
-							{
-								title: '业务经理',
-								name: 'ywjl'
-							}, {
-								title: '门店',
-								name: 'md'
-							}, {
-								title: '业务员',
-								name: 'ywy'
-							}
-						]
+						title: '省份',
+						name: 'province',
+						width: 60
 					}, {
-						title: '下单人',
-						name: 'xdr'
+						title: '城市',
+						name: 'city',
+						width: 60
 					}, {
-						title: '下单仓库',
-						name: 'xdck'
+						title: '区县',
+						name: 'county',
+						width: 60
+					}, {
+						title: '详细地址',
+						name: 'address'
 					}
 				]
+			}, {
+				title: '下单时间',
+				name: 'buyDate',
+				width: 120
+			}, {
+				title: '付款时间',
+				name: 'payDate',
+				width: 60
+			}, {
+				title: '货品数量',
+				name: 'productCount',
+				width: 60
+			}, {
+				title: '订单金额',
+				subCol: [
+					{
+						title: '货品金额',
+						name: 'productSum',
+						width: 60,
+						dataFormatter: function(value) {
+							return value.toFixed(2);
+						}
+					}, {
+						title: '运费',
+						name: 'logisticsSum',
+						width: 60,
+						dataFormatter: function(value) {
+							return value.toFixed(2);
+						}
+					}
+				]
+			}, {
+				title: '支付方式',
+				name: 'payType',
+				width: 60
+			}, {
+				title: '支付金额',
+				name: 'paySum',
+				width: 60,
+				dataFormatter: function(value) {
+					return value.toFixed(2);
+				}
+			}, {
+				title: '备注',
+				name: 'remark',
+				editable: true,
+				editEvent: {
+					click: function() {
+						console.log('click');
+					},
+					focus: function() {
+						console.log('focus')
+					},
+					blur: function() {
+						console.log('blur');
+					},
+					change: function() {
+						console.log('change');
+					}
+				},
+				iptClassName: 'j-test j-test2'
 			}, {
 				title: '操作',
 				frozen: 'right',
@@ -141,29 +188,24 @@ $(function() {
 		var arr = [];
 		for (var i=0; i<count; i++) {
 			arr.push({
-				status: '新的数据'+(i+1),
-				orderId: '20170100123456789000',
-				username: 'test',
-				name: '新的',
-				receiverName: '吴迪',
-				productPhone: '15012341234',
+				status: '待付款',
+				orderNum: '201701010001',
+				username: 'admin',
+				icon: 'http://placehold.it/100x100/666/fff.png',
+				name: '张三',
+				phone: '15012345678',
+				province: '浙江省',
+				city: '杭州市',
+				county: '江干区',
+				address: '凯旋路445号',
 				buyDate: '2017-01-01 10:00:00',
 				payDate: '2017-01-01 10:00:00',
-				paySum: '100.00',
+				productCount: 10,
+				productSum: 100,
+				logisticsSum: 10,
+				paySum: 110,
 				payType: '支付宝',
-				sum: '100.00',
-				logSum: '0.00',
-				dfSum: '0.00',
-				numCount: '10',
-				orderType: '批发',
-				saleType: 'PC',
-				remark: '',
-				ywjl: '王朋',
-				md: '梦多多',
-				ywy: '王朋',
-				xdr: '吴迪',
-				xdck: '华中仓',
-				dflx: '门店代发'
+				remark: '1'
 			});
 		}
 

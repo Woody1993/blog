@@ -5,7 +5,7 @@
  * 				1.创建时可省略new操作符 √
  * 				2.重构表格布局逻辑 √
  * 				3.优化滚动联动交互 √
- * 				4.优化自适应方法 ...
+ * 				4.优化自适应方法 √
  * 				5.优化表格行操作方法（类数组） ...
  * 				6.优化排序方法 ...
  * 				7.优化汇总行 ...
@@ -30,8 +30,6 @@
 	var _data = {}; //表格数据
 
 	var _countData = {}; //表格汇总数据
-
-	var _indexColFun = {}; //序号列方法
 
 	var _scrollSize = 0; //浏览器滚动条大小
 
@@ -59,22 +57,23 @@
 	};
 
 	var getData = function(grid, page) {
-		var data = {};
+		var param = {};
 		var opt = _opts[grid.id];
 		var sortBy = _sortBy[grid.id];
+		var data;
 		page = page ? page : 1;
-		data = typeof opt.data == 'function' ? opt.data() : opt.data;
-		data.pageIndex = page;
-		data.pageSize = opt.pageSize;
+		param = typeof opt.data == 'function' ? opt.data() : opt.data;
+		param.pageIndex = page;
+		param.pageSize = opt.pageSize;
 		if (sortBy) {
 			sortBy = sortBy.split(',');
-			data.sort = sortBy[0];
-			data.sortBy = sortBy[1]
+			param.sort = sortBy[0];
+			param.sortBy = sortBy[1]
 		}
 		$.ajax({
 			url: opt.url + '?t=' + (new Date()).getTime(),
 			type: opt.method,
-			data: data,
+			data: param,
 			dataType: opt.dataType,
 			async: false,
 			success: function(msg) {
@@ -88,7 +87,11 @@
 			_countData[grid.id] = opt.countDataFormatter(data)
 		}
 		grid.rowsCount = opt.rowsCountFormatter(data);
-		return opt.dataFormatter(data)
+		data = opt.dataFormatter(data);
+		for (var i in data) {
+			data[i]['__index'] = parseInt(i)+1;
+		}
+		return data;
 	};
 
 	var getColGroup = function(grid) {
@@ -97,21 +100,6 @@
 			main: [],
 			left: [],
 			right: []
-		};
-
-		if (opt.indexFormatter) {
-			opt.colModel.unshift({
-				width: opt.indexColWidth,
-				title: '',
-				name: 'DGridIndexCol',
-				frozen: 'left',
-				align: 'center'
-			});
-			_indexColFun[grid.id] = typeof opt.indexFormatter == 'function' ? opt.indexFormatter : function(index) {
-				return index
-			}
-		} else {
-			_indexColFun[grid.id] = function() {}
 		};
 
 		if (opt.selectModel > 0) {
@@ -124,7 +112,7 @@
 				opt.colModel.unshift({
 					width: 35,
 					title: $allChk,
-					name: 'DGridCheckCol',
+					name: '__checkbox',
 					frozen: 'left',
 					align: 'center',
 					dataFormatter: function(value, row) {
@@ -148,6 +136,9 @@
 					}, cols[i]);
 					cols[i].width = sifter(cols[i].subCol, cols[i].frozen);
 				} else {
+					if (cols[i].sys == 'index') {
+						cols[i].name = '__index';
+					}
 					cols[i] = jsonExtend({
 						title: '',
 						name: '',
@@ -179,7 +170,7 @@
 					} else if (typeof cols[i].count == 'function') {
 						_countBar[grid.id] = true
 					}
-					cols[i].width = (parseInt(cols[i].width) || 100) - 1 + 'px';
+					cols[i].width = (parseInt(cols[i].width) || 100) + 14 + 'px';
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
 				width += parseInt(cols[i].width) + 1;
@@ -353,65 +344,81 @@
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
 			var name = col.name;
-			var value = col.dataFormatter(data[name], data);
+			var value = data[name];
+
 			var $td = $('<td><div class="td" style="width:' + col.width + '; text-align:' + col.align + '">');
-			if (name == 'DGridIndexCol') {
-				$td.addClass('d-grid-td-index')
-			};
-			if (col.titleFormatter) {
-				var title = col.titleFormatter(data[name], data);
-				if (typeof title != 'string') title = '';
-				$td.attr('title', title.replace(/<\/?[^>]*>/g, ''));
-			}
+
 			if (col.editable) {
-				var $ipt = $('<input class="d-grid-ipt" type="text" />');
-				$ipt.addClass(col.iptClassName).val(value);
-				$td.find('div').html($ipt);
+				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.iptClassName);
+				$td.children('div').html($ipt);
 				for (var i in _eventType) {
 					var eFun = col.editEvent[_eventType[i]];
 					if (typeof eFun == 'function') {
-						$ipt[_eventType[i]](eFun)
+						$ipt[_eventType[i]](eFun);
 					}
 				}
-			} else {
-				$td.find('div').html(value)
+				$ipt.keyup(function() {
+					data[name] = $(this).val();
+				});
 			};
 			if (!col.overflow) {
-				$td.find('div').addClass('z-hide-txt')
+				$td.find('div').addClass('z-hide-txt');
 			}
-			$tr.append($td)
+			$tr.append($td);
+
+			function setVal(v) {
+				if (col.titleFormatter) {
+					var title = col.titleFormatter(v, data);
+					if (typeof title != 'string') title = '';
+					$td.attr('title', title.replace(/<\/?[^>]*>/g, ''));
+				}
+
+				if (col.editable) {
+					$td.children('div').children('input').val(col.dataFormatter(v, data));
+				} else {
+					$td.children('div').html(col.dataFormatter(v, data));
+				};
+			}
+
+			// 如果使用了数据则进行双向绑定
+			if (name && data[name] !== undefined) {
+				Object.defineProperty(data, name, (function(v) {
+					return {
+						get: function() {
+							return v;
+						},
+						
+						set: function(nv) {
+							v = nv;
+							setVal(v);
+						}
+					}
+				})(data[name]));
+	
+				data[name] = value;
+			} else {
+				setVal();
+			}
 		};
 		for (var i = 0, len = cols.length; i < len; i++) {
 			insertTd(cols[i]);
 		}
 
-		$tr.mouseenter(function() {
-			var index = $(this).index();
-			grid.root.body.left.dom.find('tr').eq(index).addClass('z-hover');
-			grid.root.body.right.dom.find('tr').eq(index).addClass('z-hover');
-			grid.root.body.main.dom.find('tr').eq(index).addClass('z-hover');
-		}).mouseleave(function() {
-			var index = $(this).index();
-			grid.root.body.left.dom.find('tr').eq(index).removeClass('z-hover');
-			grid.root.body.right.dom.find('tr').eq(index).removeClass('z-hover');
-			grid.root.body.main.dom.find('tr').eq(index).removeClass('z-hover');
-		});
-
 		if (opt.selectModel != 0) {
 			if (opt.callSelectModel == 0) {
 				$tr.find('.d-grid-chk').click(function() {
 					if ($tr.hasClass('z-crt')) {
-						grid.unselectRows($tr.index());
+						grid.unselectRows(data.__index-1);
 					} else {
-						grid.selectRows($tr.index());
+						grid.selectRows(data.__index-1);
 					}
 				})
 			} else {
 				$tr.click(function() {
 					if ($(this).hasClass('z-crt')) {
-						grid.unselectRows($(this).index());
+						grid.unselectRows(data.__index-1);
 					} else {
-						grid.selectRows($(this).index());
+						grid.selectRows(data.__index-1);
 					}
 				})
 			}
@@ -420,7 +427,15 @@
 		$tr.find('.d-grid-ipt').click(function(e) {
 			e.stopPropagation();
 		});
-		return $tr
+
+		if (!data['__$tr']) data['__$tr'] = [];
+		data['__$tr'].push($tr[0]);
+		$tr.mouseenter(function() {
+			$(data['__$tr']).addClass('z-hover');
+		}).mouseleave(function() {
+			$(data['__$tr']).removeClass('z-hover');
+		});
+		return $tr;
 	};
 
 	var createCount = function(id, cols, data) {
@@ -488,11 +503,9 @@
 	};
 
 	var updateRowIndex = function(grid) {
-		var fun = _indexColFun[grid.id];
-		grid.root.body.left.dom.find('.d-grid-td-index div.td').each(function(index) {
-			var i = index + 1;
-			$(this).html(fun(i));
-		})
+		for (var i in _data[grid.id]) {
+			_data[grid.id][i].__index = parseInt(i) + 1;
+		}
 	};
 
 	var synchronizeScroll = function(grid) {
@@ -684,12 +697,8 @@
 					$(this).val(me.nowPage)
 				})
 			};
-			/*var left = parseInt(_gridMain[me.id].find('.d-grid-hd table').css('left'));
-			me.grid.find('.d-grid-bd').scrollLeft(-left);
-			updateRowIndex(me);
-			me.grid.find('.d-grid-scroll-y div').scrollTop(0);*/
 
-			if (this.height == 'auto') {
+			if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
 				this.resize();
 			}
 			return this;
@@ -699,23 +708,24 @@
 			var opt = _opts[this.id];
 			var $box = this.box;
 			var width = this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 0) / 100 : width;
+			var height =  typeof this.height == 'function' ? this.height() : this.height;
 
 			this.root.dom.width(width - 2);
 
 			var sw = sh = 0;
-			if (this.height == 'auto') {
-				var height = this.getData().length * _rowHeight + (sh ? sh : 0);
+			if (height == 'auto') {
+				var h = this.getData().length * _rowHeight + (sh ? sh : 0);
 				this.root.dom.height('auto');
 
 				if (this.root.body.main.dom.find('table').innerWidth() > this.root.body.main.dom.width()) {
 					sh = _scrollSize;
 				}
 
-				this.root.body.main.dom.height(height + sh);
+				this.root.body.main.dom.height(h + sh);
 			} else {
-				var height = this.height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
-				this.root.dom.height(this.height - 2);
-				this.root.body.main.dom.height(height);
+				var h = height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
+				this.root.dom.height(height - 2);
+				this.root.body.main.dom.height(h);
 
 				if (this.root.body.main.dom.find('table').height() > this.root.body.main.dom.height()) {
 					sw = _scrollSize;
@@ -728,8 +738,8 @@
 						sw = _scrollSize;
 					}
 				}
-				this.root.body.left.dom.height(height - sh);
-				this.root.body.right.dom.height(height - sh);
+				this.root.body.left.dom.height(h - sh);
+				this.root.body.right.dom.height(h - sh);
 			}
 			this.root.head.right.dom.css('padding-right', sw);
 			this.root.body.right.dom.css('right', sw);
@@ -797,15 +807,10 @@
 			updateRowIndex(me);
 			initRowHeight(me);
 
-			return this;
-			var $imgs = this.grid.find('img');
+			var $imgs = this.root.body.dom.find('img');
 			if ($imgs.length > 0) {
-				var timer = setInterval(function() {
-					initRowHeight(me)
-				}, 200);
 				$imgs.load(function() {
 					initRowHeight(me);
-					clearInterval(timer)
 				})
 			}
 			return this;
@@ -851,29 +856,13 @@
 			var data = _data[this.id][index];
 			_data[this.id].splice(index, 1);
 			_data[this.id].splice(seat, 0, data);
-			var $leftTbody = this.grid.find('.d-grid-froze-left .d-grid-bd tbody');
-			var $rightTbody = this.grid.find('.d-grid-froze-right .d-grid-bd tbody');
-			var $centerTbody = this.grid.find('.d-grid-main .d-grid-bd tbody');
-			var $leftTr = $leftTbody.find('tr').eq(index);
-			var $rightTr = $rightTbody.find('tr').eq(index);
-			var $centerTr = $centerTbody.find('tr').eq(index);
-			if (seat == total - 1) {
-				$leftTbody.append($leftTr.removeClass('z-hover'));
-				$rightTbody.append($rightTr.removeClass('z-hover'));
-				$centerTbody.append($centerTr.removeClass('z-hover'))
-			} else {
-				if (seat > index) seat++;
-				$leftTbody.find('tr').eq(seat).before($leftTr.removeClass('z-hover'));
-				$rightTbody.find('tr').eq(seat).before($rightTr.removeClass('z-hover'));
-				$centerTbody.find('tr').eq(seat).before($centerTr.removeClass('z-hover'))
-			}
 			updateRowIndex(me);
 			return this;
 		},
 
 		selectRows: function(index) {
-			var me = this;
 			var opt = _opts[this.id];
+			var data = _data[this.id];
 			if (opt.selectModel != 2) {
 				this.unselectRows('all');
 			}
@@ -886,17 +875,15 @@
 				}
 
 				for (var i in index) {
-					index[i] = parseInt(index[i]);
-					var $temp = this.root.body.dom.find('tr:nth-child(' + (index[i]+1) + ')');
-					switchSelectState($temp, 'on');
+					switchSelectState($(data[index[i]].__$tr), 'on');
 				}
 			}
-			opt.rowOnSelect(this.getData(index)[0]);
+			opt.rowOnSelect(data[index]);
 			return this;
 		},
 
 		unselectRows: function(index) {
-			var me = this;
+			var data = _data[this.id];
 			if (index == 'all') {
 				var $trs = this.root.body.dom.find('tr');
 				switchSelectState($trs, 'off');
@@ -906,9 +893,7 @@
 				}
 
 				for (var i in index) {
-					index[i] = parseInt(index[i]);
-					var $temp = this.root.body.dom.find('tr:nth-child(' + (index[i]+1) + ')');
-					switchSelectState($temp, 'off');
+					switchSelectState($(data[index[i]].__$tr), 'off');
 				}
 			}
 			return this;
