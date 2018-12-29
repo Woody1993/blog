@@ -509,7 +509,6 @@
 	};
 
 	var synchronizeScroll = function(grid) {
-		var timer, init, cum, dir;
 		grid.root.body.main.dom.scroll(function() {
 			grid.root.head.main.dom.find('table').css('left', -$(this).scrollLeft());
 			grid.root.foot.main.dom.find('table').css('left', -$(this).scrollLeft());
@@ -522,29 +521,14 @@
 		function onMouseScroll(e) {
 			var wheel = e.originalEvent.wheelDelta || -e.originalEvent.detail;
 			var delta = Math.max(-1, Math.min(1, wheel));
+			var n = grid.root.body.main.dom.scrollTop();
 
-			clearTimeout(timer);
-			if (dir != delta) {
-				dir = delta;
-				init = grid.root.body.main.dom.scrollTop();
-				cum = 0;
-			} else {
-				timer = setTimeout(function() {
-					init = grid.root.body.main.dom.scrollTop();
-					cum = 0;
-				}, 100);
-			}
-
-			cum += delta;
-			grid.root.body.main.dom.stop().animate({
-				'scrollTop': init - 100*cum
-			}, 120);
+			grid.root.body.main.dom.scrollTop(n - delta * 30);
 			e.preventDefault();
 		}
 	};
 
 	var bindEvent = function(grid) {
-		var opt = _opts[grid.id];
 		var $box = grid.box;
 		grid.root.head.left.dom.find('.d-grid-chk-all').click(function() {
 			if ($(this).attr('checked')) {
