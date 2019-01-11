@@ -109,7 +109,7 @@ $(function() {
 			}, {
 				title: '付款时间',
 				name: 'payDate',
-				width: 60
+				width: 120
 			}, {
 				title: '货品数量',
 				name: 'productCount',

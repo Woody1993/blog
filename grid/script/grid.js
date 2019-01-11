@@ -27,8 +27,6 @@
 
 	var _countBar = {}; //是否有汇总
 
-	var _data = {}; //表格数据
-
 	var _countData = {}; //表格汇总数据
 
 	var _scrollSize = 0; //浏览器滚动条大小
@@ -36,6 +34,8 @@
 	var _sortBy = {}; //表格目前的排序
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
+
+	var _sysColName = ['__$tr', '__index', '__checkbox']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
@@ -381,7 +381,7 @@
 			}
 
 			// 如果使用了数据则进行双向绑定
-			if (name && data[name] !== undefined) {
+			if (name) {
 				Object.defineProperty(data, name, (function(v) {
 					return {
 						get: function() {
@@ -395,7 +395,7 @@
 					}
 				})(data[name]));
 	
-				data[name] = value;
+				data[name] = value == undefined ? '' : value;
 			} else {
 				setVal();
 			}
@@ -503,8 +503,8 @@
 	};
 
 	var updateRowIndex = function(grid) {
-		for (var i in _data[grid.id]) {
-			_data[grid.id][i].__index = parseInt(i) + 1;
+		for (var i in grid.data) {
+			grid.data[i].__index = parseInt(i) + 1;
 		}
 	};
 
@@ -611,7 +611,6 @@
 			this.width = opt.width;
 			this.height = opt.height;
 			_opts[_id] = opt;
-			_data[_id] = [];
 			this.colsModel = getColGroup(this);
 			initFrame(this);
 			synchronizeScroll(this);
@@ -637,7 +636,7 @@
 			} else if (opt.dataFrom == 'local') {
 				var data = opt.data
 			}
-			_data[me.id] = [];
+			this.data = [];
 			me.pushRows(data);
 			if (_countBar[me.id]) {
 
@@ -755,7 +754,7 @@
 
 		insertRows: function(index, data) {
 			var me = this;
-			var total = _data[this.id].length;
+			var total = this.data.length;
 			if (index >= total) index = -1;
 			if (index < -total) index = 0
 			if (index == 0 || index == -1) {
@@ -765,7 +764,7 @@
 					} else {
 						var pend = 'append'
 					}
-					_data[me.id][index == 0 ? 'unshift' : 'push'](data);
+					this.data[index == 0 ? 'unshift' : 'push'](data);
 					this.root.body.main.dom.find('tbody')[pend](createRow(this, this.colsModel.main, data));
 					this.root.body.left.dom.find('tbody')[pend](createRow(this, this.colsModel.left, data));
 					this.root.body.right.dom.find('tbody')[pend](createRow(this, this.colsModel.right, data));
@@ -773,7 +772,7 @@
 			} else {
 				var fun = function(data, index) {
 					if (index < 0) index++;
-					_data[me.id].splice(index, 0, data);
+					this.data.splice(index, 0, data);
 					this.root.body.left.dom.find('tr').eq(index).before(createRow(this, this.colsModel.left, data));
 					this.root.body.main.dom.find('tr').eq(index).before(createRow(this, this.colsModel.main, data));
 					this.root.body.right.dom.find('tr').eq(index).before(createRow(this, this.colsModel.right, data));
@@ -804,13 +803,13 @@
 			var me = this;
 			if (index == 'all') {
 				this.root.body.dom.find('tr').remove();
-				_data[this.id] = [];
+				this.data = [];
 				this.resize()
 			} else if (typeof index == 'number' || typeof index == 'string') {
 				index = parseInt(index);
-				var total = _data[this.id].length;
+				var total = this.data.length;
 				if (index < -total || index >= total) return false;
-				_data[this.id].splice(index, 1);
+				this.data.splice(index, 1);
 				this.root.body.left.dom.find('tr').eq(index).remove();
 				this.root.body.main.dom.find('tr').eq(index).remove();
 				this.root.body.right.dom.find('tr').eq(index).remove();
@@ -829,7 +828,7 @@
 
 		moveRowTo: function(index, seat) {
 			var me = this;
-			var total = _data[this.id].length;
+			var total = this.data.length;
 			if (seat >= total) seat = total - 1;
 			else if (seat < -total) seat = 0;
 			else if (seat < 0) seat = total + seat;
@@ -837,16 +836,16 @@
 			else if (index < -total) index = 0;
 			else if (index < 0) index = total + index;
 			if (index == seat) return this;
-			var data = _data[this.id][index];
-			_data[this.id].splice(index, 1);
-			_data[this.id].splice(seat, 0, data);
+			var data = this.data[index];
+			this.data.splice(index, 1);
+			this.data.splice(seat, 0, data);
 			updateRowIndex(me);
 			return this;
 		},
 
 		selectRows: function(index) {
 			var opt = _opts[this.id];
-			var data = _data[this.id];
+			var data = this.data;
 			if (opt.selectModel != 2) {
 				this.unselectRows('all');
 			}
@@ -867,7 +866,7 @@
 		},
 
 		unselectRows: function(index) {
-			var data = _data[this.id];
+			var data = this.data;
 			if (index == 'all') {
 				var $trs = this.root.body.dom.find('tr');
 				switchSelectState($trs, 'off');
@@ -897,7 +896,7 @@
 			var arr = [];
 			this.root.body.main.dom.find('tr.z-crt').each(function() {
 				var index = $(this).index();
-				arr.push(_data[me.id][index])
+				arr.push(me.data[index])
 			});
 			return arr;
 		},
@@ -914,22 +913,19 @@
 			return this;
 		},
 
-		getData: function(index) {
-			index = index == undefined ? 'all' : index;
-			if (index == 'all') {
-				return _data[this.id];
-			} else {
-				if (typeof index == 'number' || typeof index == 'string') {
-					index = (index + '').split(',');
+		getData: function() {
+			var arr = [];
+			for (var i in this.data) {
+				var json = {};
+				for (var k in this.data[i]) {
+					if (_sysColName.indexOf(k) == -1) {
+						json[k] = this.data[i][k];
+					}
 				}
-
-				var arr = [];
-				for (var i in index) {
-					index[i] = parseInt(index[i]);
-					arr.push(_data[this.id][index[i]]);
-				}
-				return arr;
+				arr.push(json);
 			}
+
+			return arr;
 		},
 
 		setData: function(data) {
