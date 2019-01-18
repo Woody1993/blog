@@ -56,7 +56,7 @@
 		return de
 	};
 
-	var getData = function(grid, page) {
+	var getData = function(grid, page, fun) {
 		var param = {};
 		var opt = _opts[grid.id];
 		var sortBy = _sortBy[grid.id];
@@ -75,23 +75,21 @@
 			type: opt.method,
 			data: param,
 			dataType: opt.dataType,
-			async: false,
 			success: function(msg) {
 				if (typeof msg == 'string') {
-					msg = (new Function("return " + msg))()
+					msg = (new Function("return " + msg))();
 				}
-				data = msg
+				if (opt.countDataFormatter) {
+					_countData[grid.id] = opt.countDataFormatter(msg)
+				}
+				grid.rowsCount = opt.rowsCountFormatter(msg);
+				data = opt.dataFormatter(msg);
+				for (var i in data) {
+					data[i]['__index'] = parseInt(i)+1;
+				}
+				fun(data);
 			}
 		});
-		if (opt.countDataFormatter) {
-			_countData[grid.id] = opt.countDataFormatter(data)
-		}
-		grid.rowsCount = opt.rowsCountFormatter(data);
-		data = opt.dataFormatter(data);
-		for (var i in data) {
-			data[i]['__index'] = parseInt(i)+1;
-		}
-		return data;
 	};
 
 	var getColGroup = function(grid) {
@@ -628,61 +626,65 @@
 			page = page || parseInt(me.nowPage);
 			page = page > maxnum ? maxnum : page;
 			me.nowPage = page;
+			this.data = [];
 			this.root.body.main.dom.find('tbody').html('');
 			this.root.body.left.dom.find('tbody').html('');
 			this.root.body.right.dom.find('tbody').html('');
+
+			var create = function (data) {
+				me.pushRows(data);
+				if (_countBar[me.id]) {
+	
+					this.root.foot.main.dom.html(createCount(me.id, this.colsModel.main, data));
+					this.root.foot.left.dom.html(createCount(me.id, this.colsModel.left, data));
+					this.root.foot.right.dom.html(createCount(me.id, this.colsModel.right, data));
+					initRowHeight(me)
+				};
+				if (opt.pageBar) {
+					this.root.page.dom.html(createPage(page, opt.pageSize, me.rowsCount));
+					me.pageCount = this.root.page.dom.find('input').attr('maxnum');
+					this.root.page.dom.find('a').click(function() {
+						if ($(this).hasClass('z-dis')) return;
+						if ($(this).hasClass('page-update')) {
+							me.update();
+							return
+						};
+						var page = me.root.page.dom.find('input').val();
+						if ($(this).hasClass('page-first')) {
+							page = 1
+						} else if ($(this).hasClass('page-prev')) {
+							page = --page
+						} else if ($(this).hasClass('page-next')) {
+							page = ++page
+						} else if ($(this).hasClass('page-last')) {
+							page = me.root.page.dom.find('input').attr('maxnum')
+						}
+						me.update(parseInt(page))
+					});
+					this.root.page.dom.find('form').submit(function() {
+						var $ipt = me.root.page.dom.find('input');
+						var maxnum = $ipt.attr('maxnum');
+						var page = parseInt($ipt.val()) || 1;
+						page = page > maxnum ? maxnum : page;
+						me.update(parseInt(page));
+						return false
+					});
+					this.root.page.dom.find('input').focus(function() {
+						$(this).select()
+					}).blur(function() {
+						$(this).val(me.nowPage)
+					})
+				};
+	
+				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
+					this.resize();
+				}
+			}.bind(this);
+
 			if (opt.dataFrom == 'ajax') {
-				var data = getData(me, page)
+				getData(me, page, create);
 			} else if (opt.dataFrom == 'local') {
-				var data = opt.data
-			}
-			this.data = [];
-			me.pushRows(data);
-			if (_countBar[me.id]) {
-
-				this.root.foot.main.dom.html(createCount(me.id, this.colsModel.main, data));
-				this.root.foot.left.dom.html(createCount(me.id, this.colsModel.left, data));
-				this.root.foot.right.dom.html(createCount(me.id, this.colsModel.right, data));
-				initRowHeight(me)
-			};
-			if (opt.pageBar) {
-				this.root.page.dom.html(createPage(page, opt.pageSize, me.rowsCount));
-				me.pageCount = this.root.page.dom.find('input').attr('maxnum');
-				this.root.page.dom.find('a').click(function() {
-					if ($(this).hasClass('z-dis')) return;
-					if ($(this).hasClass('page-update')) {
-						me.update();
-						return
-					};
-					var page = me.root.page.dom.find('input').val();
-					if ($(this).hasClass('page-first')) {
-						page = 1
-					} else if ($(this).hasClass('page-prev')) {
-						page = --page
-					} else if ($(this).hasClass('page-next')) {
-						page = ++page
-					} else if ($(this).hasClass('page-last')) {
-						page = me.root.page.dom.find('input').attr('maxnum')
-					}
-					me.update(parseInt(page))
-				});
-				this.root.page.dom.find('form').submit(function() {
-					var $ipt = me.root.page.dom.find('input');
-					var maxnum = $ipt.attr('maxnum');
-					var page = parseInt($ipt.val()) || 1;
-					page = page > maxnum ? maxnum : page;
-					me.update(parseInt(page));
-					return false
-				});
-				this.root.page.dom.find('input').focus(function() {
-					$(this).select()
-				}).blur(function() {
-					$(this).val(me.nowPage)
-				})
-			};
-
-			if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
-				this.resize();
+				create(opt.data);
 			}
 			return this;
 		},

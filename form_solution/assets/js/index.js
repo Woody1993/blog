@@ -14,6 +14,22 @@
 						type: 'empty',
 						msg: '用户名不能为空'
 					}, {
+						type: 'length',
+						range: [10, 20],
+						msg: '用户名长度为4到20字符'
+					}, {
+						type: 'regexp',
+						regexp: ['phone', 'email'],
+						callback: {
+							phone: function(value) {
+								$('input[name="phone"]').val(value);
+							},
+							email: function(value) {
+								$('input[name="email"]').val(value);
+							}
+						},
+						msg: '请输入正确的手机号或邮箱'
+					}, {
 						type: 'async',
 						url: 'assets/json/test.json',
 						name: 'username',
@@ -27,18 +43,6 @@
 
 						},
 						msg: '用户名已存在'
-					}, {
-						type: 'regexp',
-						regexp: ['phone', 'email'],
-						callback: {
-							phone: function(value) {
-								$('input[name="phone"]').val(value);
-							},
-							email: function(value) {
-								$('input[name="email"]').val(value);
-							}
-						},
-						msg: '请输入正确的手机号或邮箱'
 					}],
 
 					'sex': [{
@@ -92,6 +96,8 @@
 
 				fail: function(name, type, msg) {
 					console.log('字段名：'+name+';校验类型：'+type+';校验结果：false');
+					console.log(msg)
+					console.log('---------------------------------------------')
 				}
 			});
 		},
