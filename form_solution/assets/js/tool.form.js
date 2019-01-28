@@ -168,6 +168,7 @@
 			itemFmt: {},
 			vaildAll: false,
 			rule: {},
+			skip: {},
 			pass: function() {},
 			fail: function() {},
 			beforeVaildate: function() {},
@@ -224,7 +225,13 @@
 
 			function loop(index) {
 				var name = arr[index];
-				checkItem.call(me, name, json[name], opt.rule[name], function(s) {
+				if (opt.skip[name] && opt.skip[name]()) {
+					callback(true);
+				} else {
+					checkItem.call(me, name, json[name], opt.rule[name], callback);
+				}
+
+				function callback(s) {
 					if (!s) {
 						state = false;
 						if (!opt.vaildAll) {
@@ -239,7 +246,7 @@
 					} else {
 						loop(++index);
 					}
-				});
+				}
 			}
 			loop(0);
 		},

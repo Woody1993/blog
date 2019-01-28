@@ -7,6 +7,7 @@
 		},
 
 		listener: function() {
+			var isPhone;
 			form = new formObject({
 				form: 'form',
 				rule: {
@@ -16,16 +17,18 @@
 					}, {
 						type: 'length',
 						range: [10, 20],
-						msg: '用户名长度为4到20字符'
+						msg: '用户名长度为10到20字符'
 					}, {
 						type: 'regexp',
 						regexp: ['phone', 'email'],
 						callback: {
 							phone: function(value) {
 								$('input[name="phone"]').val(value);
+								isPhone = true;
 							},
 							email: function(value) {
 								$('input[name="email"]').val(value);
+								isPhone = false;
 							}
 						},
 						msg: '请输入正确的手机号或邮箱'
@@ -88,6 +91,12 @@
 					}]
 				},
 
+				skip: {
+					'agree': function() {
+						return isPhone;
+					}
+				},
+
 				vaildAll: true,
 
 				pass: function(name, type) {
@@ -95,6 +104,9 @@
 				},
 
 				fail: function(name, type, msg) {
+					if (name == 'username') {
+						isPhone = false;
+					}
 					console.log('字段名：'+name+';校验类型：'+type+';校验结果：false');
 					console.log(msg)
 					console.log('---------------------------------------------')
