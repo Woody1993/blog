@@ -25,7 +25,7 @@
 			productSum: 100,
 			logisticsSum: 10,
 			paySum: 110,
-			payType: '支付宝',
+			payType: '微信',
 			remark: '1'
 		}, {
 			status: '待付款2',
@@ -44,7 +44,7 @@
 			productSum: 100,
 			logisticsSum: 10,
 			paySum: 110,
-			payType: '支付宝',
+			payType: '微信',
 			remark: '1'
 		}, {
 			status: '待付款3',
@@ -63,7 +63,7 @@
 			productSum: 100,
 			logisticsSum: 10,
 			paySum: 110,
-			payType: '支付宝',
+			payType: '微信',
 			remark: '1'
 		}, {
 			status: '待付款4',
@@ -82,7 +82,7 @@
 			productSum: 100,
 			logisticsSum: 10,
 			paySum: 110,
-			payType: '支付宝',
+			payType: '微信',
 			remark: '1'
 		}, {
 			status: '待付款5',
@@ -101,7 +101,7 @@
 			productSum: 100,
 			logisticsSum: 10,
 			paySum: 110,
-			payType: '支付宝',
+			payType: '微信',
 			remark: '1'
 		}, {
 			status: '待付款6',

@@ -172,12 +172,30 @@ $(function() {
 				frozen: 'right',
 				width: 160,
 				dataFormatter: function(value, row) {
-					return [
+					var $btn = $([
 						'<button class="top">置顶</button>',
 						'<button class="prev">上移</button>',
 						'<button class="next">下移</button>',
 						'<button class="bottom">置底</button>'
-					].join('');
+					].join(''));
+					$btn.click(function(e) {
+						switch($(this).index()) {
+						case 0:
+							row.moveTo(0);
+							break;
+						case 1:
+							row.moveTo(row.getIndex()-1);
+							break;
+						case 2:
+							row.moveTo(row.getIndex()+1);
+							break;
+						case 3:
+							row.moveTo(-1);
+							break;
+						}
+						e.stopPropagation();
+					});
+					return $btn;
 				}
 			}
 		]

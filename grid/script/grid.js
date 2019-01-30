@@ -6,26 +6,31 @@
  * 				2.重构表格布局逻辑 √
  * 				3.优化滚动联动交互 √
  * 				4.优化自适应方法 √
- * 				5.优化表格行操作方法 ...
+ * 				5.重构表格行操作方法 √
  * 					└ 插入行  insertRows √
- * 					└ 获取所有行  getAllRows，根据序号获得行  getRows、获得当前页选中行  getCrtRows
- * 						└ 移动至指定位置  moveTo
+ * 					└ 获取所有行  getAllRows √
+ * 					  根据序号获得行  getRows √
+ * 					  获得当前页选中行  getCrtRows √
+ * 					  通过条件获取行  getRowsBy √
+ * 					  	└ 移动至指定位置  moveTo √
  * 						└ 删除  remove √
+ * 						└ 获取序号  getIndex √
  * 						└ 获取数据  getData √
  * 						└ 选中  select √
  * 						└ 取消选中  unselect √
- * 						└ 刷新数据 update
- * 				6.优化排序方法 ...
- * 				7.优化汇总行 ...
- * 				8.优化分页栏 ...
- * 				9.增加系统列概念（隐藏列，序号列，复选列，分级列等）
- * 				10.支持多级子行
- * 				11.列宽拖拽调整
- * 				12.整列隐藏
- * 				13.整列拖拽排序
- * 				14.保存表格已选行，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
- * 					└ 获取已选数据  getCrtData
- * 					└ 清除已选数据  cleanCrtData
+ * 						└ 刷新数据 update √
+ * 				6.优化排序方法  [2]
+ * 				7.优化汇总行  [1]
+ * 				8.优化分页栏，支持两种模式  [1]
+ * 				9.增加系统列概念（隐藏列，序号列，复选列，分级列等） [2]
+ * 				10.支持多级子行  [3]
+ * 				11.列宽拖拽调整  [4]
+ * 				12.整列隐藏  [4]
+ * 				13.整列拖拽排序  [4]
+ * 				14.保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
+ * 					└ 获取已选数据  getCrtData ...
+ * 					└ 清除已选数据  cleanCrtData ...
+ *              15.表格搜索功能  [2]
  * Date: 2018-11-01
 **/
 
@@ -42,16 +47,16 @@
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
-	var _sysColName = ['__data', '__$tr', '__index', '__checkbox', '__selected']; //系统列集合
+	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
-			var noScroll, scroll, oDiv = document.createElement('div');
+			var noScroll, scroll, oDiv = d.createElement('div');
 			oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
-			noScroll = document.body.appendChild(oDiv).clientWidth;
+			noScroll = d.body.appendChild(oDiv).clientWidth;
 			oDiv.style.overflowY = 'scroll';
 			scroll = oDiv.clientWidth;
-			document.body.removeChild(oDiv);
+			d.body.removeChild(oDiv);
 			return (noScroll - scroll);
 		})()
 	});
@@ -91,9 +96,6 @@
 				}
 				grid.rowsCount = opt.rowsCountFormatter(msg);
 				data = opt.dataFormatter(msg);
-				for (var i in data) {
-					data[i]['__index'] = parseInt(i)+1;
-				}
 				fun(data);
 			}
 		});
@@ -344,6 +346,8 @@
 	var createRow = function(grid, cols, data) {
 		var opt = grid.opt;
 		var $tr = $('<tr>');
+		var rh = new rowsHandle(grid, [data]);
+
 		var insertTd = function(col) {
 			var name = col.name;
 			var value = data[name];
@@ -376,9 +380,9 @@
 				}
 
 				if (col.editable) {
-					$td.children('div').children('input').val(col.dataFormatter(v, data));
+					$td.children('div').children('input').val(col.dataFormatter(v, rh));
 				} else {
-					$td.children('div').html(col.dataFormatter(v, data));
+					$td.children('div').html(col.dataFormatter(v, rh));
 				};
 			}
 
@@ -406,31 +410,30 @@
 			insertTd(cols[i]);
 		};
 
-		var rh = new rowsHandle(grid, [data]);
 		$tr.click(function() {
-			console.log(1);
-			grid.opt.rowOnClick(rh.getData()[0]);
+			grid.opt.rowOnClick(rh.getData());
 		});
 		if (opt.selectModel != 0) {
 			if (opt.callSelectModel == 0 || opt.callSelectModel == 2) {
 				$tr.find('.d-grid-chk').click(function(e) {
-					console.log(2);
-					if (grid.opt.beforeSelect(rh.getData()[0]) === false) return;
+					e.stopPropagation();
 					if ($tr.hasClass('z-crt')) {
 						rh.unselect();
 					} else {
+						if (grid.opt.beforeSelect(rh.getData()) === false) {
+							$(this).removeAttr('checked');
+							return;
+						}
 						rh.select();
 					}
-					e.stopPropagation();
 				});
 			}
 			if (opt.callSelectModel == 1 || opt.callSelectModel == 2) {
 				$tr.click(function() {
-					console.log(3);
-					if (grid.opt.beforeSelect(rh.getData()[0]) === false) return;
 					if ($(this).hasClass('z-crt')) {
 						rh.unselect();
 					} else {
+						if (grid.opt.beforeSelect(rh.getData()) === false) return;
 						rh.select();
 					}
 				});
@@ -748,16 +751,19 @@
 			return this;
 		},
 
+		// 向表格最下面插入行
 		pushRows: function(data) {
 			this.insertRows(0, data);
 			return this;
 		},
 
+		// 向表格最上面插入行
 		unshiftRows: function(data) {
 			this.insertRows(0, data);
 			return this;
 		},
 
+		// 向指定位置插入行
 		insertRows: function(index, data) {
 			var me = this;
 			var total = this.data.length;
@@ -794,14 +800,12 @@
 			return this;
 		},
 		
-		/**
-		 * 根据序号获取行对象
-		 * @param {number|string|array} index 序号或序号数组
-		 * @return {object}
-		 */
+		// 根据序号获取行
 		getRows: function(index) {
 			if (is(index) == 'number' || is(index) == 'string') index = [index];
 			else if(is(index) != 'array') return;
+
+			index = index.sort();
 
 			var a = [];
 			for (var i in index) {
@@ -809,28 +813,59 @@
 				if (n < 0 || n >= this.data.length) continue;
 				a.push(this.data[n]);
 			}
-
 			return new rowsHandle(this, a);
 		},
 
-		resizeWidth: function(w) {
+		// 获取当前页所有行
+		getAllRows: function() {
+			return new rowsHandle(this, this.data);
+		},
+
+		// 获取当前页所有选中行
+		getCrtRows: function() {
+			var a = [];
+			for (var i in this.data) {
+				if (this.data[i].__selected) {
+					a.push(this.data[i]);	
+				}
+			}
+			return new rowsHandle(this, a);
+		},
+
+		// 根据条件获取行
+		getRowsBy: function(o) {
+			var a = [];
+			for (var i in this.data) {
+				var state = true;
+				for (var j in o) {
+					if (_sysColName.indexOf(j) == -1 && this.data[i][j] !== undefined) {
+						if (is(o[j]) == 'array') {
+							if (o[j].indexOf(this.data[i][j]) == -1) {
+								state = false;
+								break;
+							}
+						} else if (o[j] != this.data[i][j]) {
+							state = false;
+							break;
+						}
+					}
+				}
+				if (state) a.push(this.data[i]);
+			}
+			return new rowsHandle(this, a);
+		},
+
+		// 修改表格宽度
+		setWidth: function(w) {
 			this.width = w;
 			this.resize();
 			return this;
 		},
 
-		resizeHeight: function(h) {
+		// 修改表格高度
+		setHeight: function(h) {
 			this.height = h;
 			this.resize();
-			return this;
-		},
-
-		setData: function(data) {
-			var opt = this.opt;
-			if (opt.dataFrom == 'local') {
-				opt.data = data;
-				this.update(1);
-			}
 			return this;
 		}
 	};
@@ -838,50 +873,83 @@
 	main.fn.init.prototype = main.fn;
 
 	w.dGrid = w.d = main;
+
+	var rowsDataClean = function(data) {
+		var json = {};
+		for (var i in data) {
+			if (_sysColName.indexOf(i) == -1) {
+				json[i] = data[i];
+			}
+		}
+		return json;
+	}
 	
-	/**
-	 * 行操作构造函数
-	 * @param {object}  grid 
-	 * @param {array}   data 
-	 * @return {object}
-	 */
+	// 行操作构造函数
 	var rowsHandle = function(grid, data) {
 		this.grid = grid;
 		this.rows = data;
-		
-		for (var i in this.rows) {
-			var json = {};
-			for (var j in this.rows[i]) {
-				var t = this.rows[i][j];
-				if (_sysColName.indexOf(j) == -1) {
-					json[j] = t;
-				}
-			}
-			this.rows[i].__data = json;
-		}
+		this.length = data.length;
 		return this;
 	};
 
 	rowsHandle.prototype = {
-		moveTo: function() {
+		moveTo: function(index) {
+			var total = grid.data.length - this.length;
+			if (index >= total) index = -1;
+			else if (index < -total) index = 0;
 
+			var data = [];
+			for (var i = this.length-1; i>=0; i--) {
+				data.unshift(this.grid.data.splice(this.rows[i].__index-1, 1)[0]);
+			}
+
+			if (total == 0 || index == -1) {
+				var fun = function(data) {
+					this.data.push(data);
+					this.root.body.main.dom.find('tbody').append(data.__$tr[0]);
+					this.root.body.left.dom.find('tbody').append(data.__$tr[1]);
+					this.root.body.right.dom.find('tbody').append(data.__$tr[2]);
+				}.bind(this.grid);
+			} else {
+				var $trs = this.grid.data[index].__$tr;
+				var fun = function(data) {
+					this.data.splice(index++, 0, data);
+					$($trs[0]).before(data.__$tr[0]);
+					$($trs[1]).before(data.__$tr[1]);
+					$($trs[2]).before(data.__$tr[2]);
+				}.bind(this.grid);
+			};
+			for (var i = 0; i < data.length; i++) {
+				fun(data[i]);
+			}
+			updateRowIndex(grid);
+			return this;
 		},
 
 		remove: function() {
-			for (var i in this.rows) {
+			for (var i = this.rows.length-1; i>=0; i--) {
 				$(this.rows[i].__$tr).remove();
 				this.grid.data.splice(this.rows[i].__index-1, 1);
 			}
 			updateRowIndex(this.grid);
+			this.grid.resize();
 			return this;
+		},
+
+		getIndex: function() {
+			var data = [];
+			for (var i in this.rows) {
+				data.push(this.rows[i].__index-1);
+			}
+			return data.length == 1 ? data[0] : data;
 		},
 
 		getData: function() {
 			var data = [];
 			for (var i in this.rows) {
-				data.push(this.rows[i].__data);
+				data.push(rowsDataClean(this.rows[i]));
 			}
-			return data;
+			return data.length == 1 ? data[0] : data;
 		},
 
 		select: function() {
@@ -891,8 +959,9 @@
 				$(row.__$tr).addClass('z-crt').find('.d-grid-chk').attr('checked', 'true');
 				row.__selected = true;
 
-				this.grid.opt.rowOnSelect(row.__data);
+				this.grid.opt.rowOnSelect(rowsDataClean(row));
 			}
+			return this;
 		},
 
 		unselect: function() {
@@ -902,10 +971,19 @@
 				$(row.__$tr).removeClass('z-crt').find('.d-grid-chk').removeAttr('checked');
 				row.__selected = false;
 			}
+			return this;
 		},
 
-		update: function() {
-
+		update: function(data) {
+			for (var i in this.rows) {
+				if (!data[i]) return this;
+				for (var j in this.rows[i]) {
+					if (_sysColName.indexOf(j) == -1 && data[i][j] !== undefined) {
+						this.rows[i][j] = data[i][j];
+					}
+				}
+			}
+			return this;
 		}
 	};
 
