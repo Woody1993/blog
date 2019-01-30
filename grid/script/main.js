@@ -17,11 +17,15 @@ $(function() {
 		height: function() {
 			return window.gridHeight || '600'
 		},
-		rowOnClick: function(obj, data, e) {
-			//console.log(data);
+		rowOnClick: function(data) {
+			console.log('click:', data);
+		},
+		beforeSelect: function(data) {
+			console.log('beforeSelect:', data);
+			if (data.status == '待付款2') return false;
 		},
 		rowOnSelect: function(data) {
-			console.log(data);
+			console.log('select:', data);
 		},
 
 		selectModel: 1,
@@ -45,7 +49,7 @@ $(function() {
 				title: '状态',
 				frozen: 'left',
 				name: 'status',
-				width: 50,
+				width: 60,
 				sortBy: 'both', //none || asc || desc || both
 				sortFrom: 'local', //ajax || local
 				sortModel: 'string' //number || string
@@ -183,12 +187,13 @@ $(function() {
 		grid.resize();
 	});
 
+	var newRowsIndex = 0;
 	$('#insert').click(function() {
 		var count = $('#insertCount').val();
 		var arr = [];
 		for (var i=0; i<count; i++) {
 			arr.push({
-				status: '待付款',
+				status: '新订单'+(++newRowsIndex),
 				orderNum: '201701010001',
 				username: 'admin',
 				icon: 'http://placehold.it/100x100/666/fff.png',

@@ -7,14 +7,14 @@
  * 				3.优化滚动联动交互 √
  * 				4.优化自适应方法 √
  * 				5.优化表格行操作方法 ...
- * 					└ 插入行  insertRows
+ * 					└ 插入行  insertRows √
  * 					└ 获取所有行  getAllRows，根据序号获得行  getRows、获得当前页选中行  getCrtRows
  * 						└ 移动至指定位置  moveTo
- * 						└ 删除  remove
- * 						└ 获取数据  getData
- * 						└ 获取序号  getIndex
- * 						└ 选中  select
- * 						└ 取消选中  unselect
+ * 						└ 删除  remove √
+ * 						└ 获取数据  getData √
+ * 						└ 选中  select √
+ * 						└ 取消选中  unselect √
+ * 						└ 刷新数据 update
  * 				6.优化排序方法 ...
  * 				7.优化汇总行 ...
  * 				8.优化分页栏 ...
@@ -30,11 +30,7 @@
 **/
 
 ;(function(w, d, $) {
-	var _id = 0; //表格ID
-
 	var _rowHeight = 36; //行高，用于表格自动高度
-
-	var _opts = {}; //表格配置
 
 	var _countBar = {}; //是否有汇总
 
@@ -46,7 +42,7 @@
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__checkbox']; //系统列集合
+	var _sysColName = ['__data', '__$tr', '__index', '__checkbox', '__selected']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
@@ -56,7 +52,7 @@
 			oDiv.style.overflowY = 'scroll';
 			scroll = oDiv.clientWidth;
 			document.body.removeChild(oDiv);
-			return (noScroll - scroll)
+			return (noScroll - scroll);
 		})()
 	});
 
@@ -69,7 +65,7 @@
 
 	var getData = function(grid, page, fun) {
 		var param = {};
-		var opt = _opts[grid.id];
+		var opt = grid.opt;
 		var sortBy = _sortBy[grid.id];
 		var data;
 		page = page ? page : 1;
@@ -104,7 +100,7 @@
 	};
 
 	var getColGroup = function(grid) {
-		var opt = _opts[grid.id];
+		var opt = grid.opt;
 		var json = {
 			main: [],
 			left: [],
@@ -124,9 +120,8 @@
 					name: '__checkbox',
 					frozen: 'left',
 					align: 'center',
-					dataFormatter: function(value, row) {
-						var $chk = $('<input type="checkbox" class="d-grid-chk" />');
-						return $chk
+					dataFormatter: function() {
+						return $('<input type="checkbox" class="d-grid-chk" />');
 					}
 				})
 			}
@@ -191,8 +186,7 @@
 	};
 
 	var initFrame = function(grid) {
-		var id = grid.id;
-		var opt = _opts[grid.id];
+		var opt = grid.opt;
 
 		grid.root = {
 			dom: $('<div class="d-grid"></div>')
@@ -243,7 +237,7 @@
 			};
 		}
 
-		var $headObjs = createThead(id, true);
+		var $headObjs = createThead(grid.opt.colModel, true);
 		grid.root.head.main.dom.append($headObjs[0]);
 		grid.root.head.left.dom.append($headObjs[1]);
 		grid.root.head.right.dom.append($headObjs[2]);
@@ -256,8 +250,7 @@
 		grid.box.html(grid.root.dom);
 	};
 
-	var createThead = function(id, n) {
-		var cols = _opts[id].colModel;
+	var createThead = function(cols, n) {
 		var $hds = [$('<thead>'), $('<thead>'), $('<thead>')];
 
 		//设置排序按钮
@@ -349,7 +342,7 @@
 	};
 
 	var createRow = function(grid, cols, data) {
-		var opt = _opts[grid.id];
+		var opt = grid.opt;
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
 			var name = col.name;
@@ -411,27 +404,38 @@
 		};
 		for (var i = 0, len = cols.length; i < len; i++) {
 			insertTd(cols[i]);
-		}
+		};
 
+		var rh = new rowsHandle(grid, [data]);
+		$tr.click(function() {
+			console.log(1);
+			grid.opt.rowOnClick(rh.getData()[0]);
+		});
 		if (opt.selectModel != 0) {
-			if (opt.callSelectModel == 0) {
-				$tr.find('.d-grid-chk').click(function() {
+			if (opt.callSelectModel == 0 || opt.callSelectModel == 2) {
+				$tr.find('.d-grid-chk').click(function(e) {
+					console.log(2);
+					if (grid.opt.beforeSelect(rh.getData()[0]) === false) return;
 					if ($tr.hasClass('z-crt')) {
-						grid.unselectRows(data.__index-1);
+						rh.unselect();
 					} else {
-						grid.selectRows(data.__index-1);
+						rh.select();
 					}
-				})
-			} else {
-				$tr.click(function() {
-					if ($(this).hasClass('z-crt')) {
-						grid.unselectRows(data.__index-1);
-					} else {
-						grid.selectRows(data.__index-1);
-					}
-				})
+					e.stopPropagation();
+				});
 			}
-		}
+			if (opt.callSelectModel == 1 || opt.callSelectModel == 2) {
+				$tr.click(function() {
+					console.log(3);
+					if (grid.opt.beforeSelect(rh.getData()[0]) === false) return;
+					if ($(this).hasClass('z-crt')) {
+						rh.unselect();
+					} else {
+						rh.select();
+					}
+				});
+			}
+		};
 
 		$tr.find('.d-grid-ipt').click(function(e) {
 			e.stopPropagation();
@@ -569,20 +573,10 @@
 			grid.update(1)
 		});
 	};
-
-	var switchSelectState = function($trs, state) {
-		if (!$trs) return;
-		if (state == 'on') {
-			$trs.addClass('z-crt').find('.d-grid-chk').attr('checked', 'true')
-		};
-		if (state == 'off') {
-			$trs.removeClass('z-crt').find('.d-grid-chk').removeAttr('checked')
-		}
-	};
 	
 	var main = function(opt) {
 		return new main.fn.init(opt);
-	}
+	};
 
 	main.fn = main.prototype = {
 		init: function(opt) {
@@ -611,28 +605,27 @@
 				colModel: [],
 				pageBar: true,
 				rowOnClick: function() {},
+				beforeSelect: function() {},
 				rowOnSelect: function() {}
 			}, opt || {});
-			this.id = _id;
+			this.opt = opt;
 			this.box = $(opt.box + ':first');
 			if (this.box.length == 0) return this;
 			this.rowsCount = 0;
 			this.width = opt.width;
 			this.height = opt.height;
-			_opts[_id] = opt;
 			this.colsModel = getColGroup(this);
 			initFrame(this);
 			synchronizeScroll(this);
 			bindEvent(this);
 			this.resize();
 			this.update(1);
-			_id++;
 			return this
 		},
 
 		update: function(page) {
 			var me = this;
-			var opt = _opts[me.id];
+			var opt = this.opt;
 			var maxnum = me.pageCount || 1;
 			page = page || parseInt(me.nowPage);
 			page = page > maxnum ? maxnum : page;
@@ -701,7 +694,7 @@
 		},
 
 		resize: function() {
-			var opt = _opts[this.id];
+			var opt = this.opt;
 			var $box = this.box;
 			var width = this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 0) / 100 : width;
 			var height =  typeof this.height == 'function' ? this.height() : this.height;
@@ -710,7 +703,7 @@
 
 			var sw = sh = 0;
 			if (height == 'auto') {
-				var h = this.getData().length * _rowHeight + (sh ? sh : 0);
+				var h = this.data.length * _rowHeight + (sh ? sh : 0);
 				this.root.dom.height('auto');
 
 				if (this.root.body.main.dom.find('table').innerWidth() > this.root.body.main.dom.width()) {
@@ -756,7 +749,7 @@
 		},
 
 		pushRows: function(data) {
-			this.insertRows(-1, data);
+			this.insertRows(0, data);
 			return this;
 		},
 
@@ -769,36 +762,25 @@
 			var me = this;
 			var total = this.data.length;
 			if (index >= total) index = -1;
-			if (index < -total) index = 0
-			if (index == 0 || index == -1) {
+			else if (index < -total) index = 0;
+			if (total == 0 || index == -1) {
 				var fun = function(data) {
-					if (index == 0) {
-						var pend = 'prepend'
-					} else {
-						var pend = 'append'
-					}
-					this.data[index == 0 ? 'unshift' : 'push'](data);
-					this.root.body.main.dom.find('tbody')[pend](createRow(this, this.colsModel.main, data));
-					this.root.body.left.dom.find('tbody')[pend](createRow(this, this.colsModel.left, data));
-					this.root.body.right.dom.find('tbody')[pend](createRow(this, this.colsModel.right, data));
+					this.data.push(data);
+					this.root.body.main.dom.find('tbody').append(createRow(this, this.colsModel.main, data));
+					this.root.body.left.dom.find('tbody').append(createRow(this, this.colsModel.left, data));
+					this.root.body.right.dom.find('tbody').append(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			} else {
-				var fun = function(data, index) {
-					if (index < 0) index++;
-					this.data.splice(index, 0, data);
-					this.root.body.left.dom.find('tr').eq(index).before(createRow(this, this.colsModel.left, data));
-					this.root.body.main.dom.find('tr').eq(index).before(createRow(this, this.colsModel.main, data));
-					this.root.body.right.dom.find('tr').eq(index).before(createRow(this, this.colsModel.right, data));
+				var $trs = this.data[index].__$tr;
+				var fun = function(data) {
+					this.data.splice(index++, 0, data);
+					$($trs[0]).before(createRow(this, this.colsModel.main, data));
+					$($trs[1]).before(createRow(this, this.colsModel.left, data));
+					$($trs[2]).before(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			};
-			if (index == -1) {
-				for (var i = 0, len = data.length; i < len; i++) {
-					fun(data[i])
-				}
-			} else {
-				for (var i = data.length - 1; i >= 0; i--) {
-					fun(data[i], index)
-				}
+			for (var i = 0, len = data.length; i < len; i++) {
+				fun(data[i])
 			}
 			updateRowIndex(me);
 			initRowHeight(me);
@@ -811,107 +793,24 @@
 			}
 			return this;
 		},
+		
+		/**
+		 * 根据序号获取行对象
+		 * @param {number|string|array} index 序号或序号数组
+		 * @return {object}
+		 */
+		getRows: function(index) {
+			if (is(index) == 'number' || is(index) == 'string') index = [index];
+			else if(is(index) != 'array') return;
 
-		deleteRows: function(index) {
-			var me = this;
-			if (index == 'all') {
-				this.root.body.dom.find('tr').remove();
-				this.data = [];
-				this.resize()
-			} else if (typeof index == 'number' || typeof index == 'string') {
-				index = parseInt(index);
-				var total = this.data.length;
-				if (index < -total || index >= total) return false;
-				this.data.splice(index, 1);
-				this.root.body.left.dom.find('tr').eq(index).remove();
-				this.root.body.main.dom.find('tr').eq(index).remove();
-				this.root.body.right.dom.find('tr').eq(index).remove();
-				updateRowIndex(me);
-				this.resize()
-			} else if (typeof index == 'object') {
-				index = index.sort(function(a, b) {
-					return b - a
-				});
-				for (var i in index) {
-					me.deleteRows(index[i]);
-				}
+			var a = [];
+			for (var i in index) {
+				var n = index[i];
+				if (n < 0 || n >= this.data.length) continue;
+				a.push(this.data[n]);
 			}
-			return this;
-		},
 
-		moveRowTo: function(index, seat) {
-			var me = this;
-			var total = this.data.length;
-			if (seat >= total) seat = total - 1;
-			else if (seat < -total) seat = 0;
-			else if (seat < 0) seat = total + seat;
-			if (index >= total) index = total - 1;
-			else if (index < -total) index = 0;
-			else if (index < 0) index = total + index;
-			if (index == seat) return this;
-			var data = this.data[index];
-			this.data.splice(index, 1);
-			this.data.splice(seat, 0, data);
-			updateRowIndex(me);
-			return this;
-		},
-
-		selectRows: function(index) {
-			var opt = _opts[this.id];
-			var data = this.data;
-			if (opt.selectModel != 2) {
-				this.unselectRows('all');
-			}
-			if (index == 'all') {
-				var $trs = this.root.body.dom.find('tr');
-				switchSelectState($trs, 'on');
-			} else {
-				if (typeof index == 'number' || typeof index == 'string') {
-					index = (index + '').split(',');
-				}
-
-				for (var i in index) {
-					switchSelectState($(data[index[i]].__$tr), 'on');
-				}
-			}
-			opt.rowOnSelect(data[index]);
-			return this;
-		},
-
-		unselectRows: function(index) {
-			var data = this.data;
-			if (index == 'all') {
-				var $trs = this.root.body.dom.find('tr');
-				switchSelectState($trs, 'off');
-			} else {
-				if (typeof index == 'number' || typeof index == 'string') {
-					index = (index + '').split(',');
-				}
-
-				for (var i in index) {
-					switchSelectState($(data[index[i]].__$tr), 'off');
-				}
-			}
-			return this;
-		},
-
-		getCrtRowsIndex: function() {
-			var arr = [];
-			this.root.body.main.dom.find('tr.z-crt').each(function() {
-				var index = $(this).index();
-				arr.push(index)
-			});
-			return arr;
-		},
-
-		getCrtRowsData: function() {
-			var me = this;
-			var arr = [];
-			this.root.body.main.dom.find('tr.z-crt').each(function() {
-				var index = $(this).index();
-				arr.push(me.data[index])
-			});
-			return arr;
+			return new rowsHandle(this, a);
 		},
 
 		resizeWidth: function(w) {
@@ -926,33 +825,88 @@
 			return this;
 		},
 
-		getData: function() {
-			var arr = [];
-			for (var i in this.data) {
-				var json = {};
-				for (var k in this.data[i]) {
-					if (_sysColName.indexOf(k) == -1) {
-						json[k] = this.data[i][k];
-					}
-				}
-				arr.push(json);
-			}
-
-			return arr;
-		},
-
 		setData: function(data) {
-			var opt = _opts[this.id];
+			var opt = this.opt;
 			if (opt.dataFrom == 'local') {
 				opt.data = data;
 				this.update(1);
 			}
 			return this;
 		}
-	}
+	};
 
 	main.fn.init.prototype = main.fn;
 
 	w.dGrid = w.d = main;
+	
+	/**
+	 * 行操作构造函数
+	 * @param {object}  grid 
+	 * @param {array}   data 
+	 * @return {object}
+	 */
+	var rowsHandle = function(grid, data) {
+		this.grid = grid;
+		this.rows = data;
+		
+		for (var i in this.rows) {
+			var json = {};
+			for (var j in this.rows[i]) {
+				var t = this.rows[i][j];
+				if (_sysColName.indexOf(j) == -1) {
+					json[j] = t;
+				}
+			}
+			this.rows[i].__data = json;
+		}
+		return this;
+	};
+
+	rowsHandle.prototype = {
+		moveTo: function() {
+
+		},
+
+		remove: function() {
+			for (var i in this.rows) {
+				$(this.rows[i].__$tr).remove();
+				this.grid.data.splice(this.rows[i].__index-1, 1);
+			}
+			updateRowIndex(this.grid);
+			return this;
+		},
+
+		getData: function() {
+			var data = [];
+			for (var i in this.rows) {
+				data.push(this.rows[i].__data);
+			}
+			return data;
+		},
+
+		select: function() {
+			for (var i in this.rows) {
+				var row = this.rows[i];
+				if ($(row.__$tr).hasClass('z-crt')) continue;
+				$(row.__$tr).addClass('z-crt').find('.d-grid-chk').attr('checked', 'true');
+				row.__selected = true;
+
+				this.grid.opt.rowOnSelect(row.__data);
+			}
+		},
+
+		unselect: function() {
+			for (var i in this.rows) {
+				var row = this.rows[i];
+				if (!$(row.__$tr).hasClass('z-crt')) continue;
+				$(row.__$tr).removeClass('z-crt').find('.d-grid-chk').removeAttr('checked');
+				row.__selected = false;
+			}
+		},
+
+		update: function() {
+
+		}
+	};
 
 })(window, document, window.jQuery);
