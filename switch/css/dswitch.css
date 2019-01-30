@@ -1,0 +1,85 @@
+/* switch */
+.u-switch {
+    position: relative;
+    display: inline-block;
+    height: 24px;
+    border-radius: 12px;
+    line-height: 24px;
+    background: #fff;
+    cursor: pointer;
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    transition: all .3s ease;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+.u-switch div {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.u-switch span {
+    display: block;
+    position: absolute;
+    height: 100%;
+    overflow: hidden;
+    line-height: 24px;
+    font-size: 12px;
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    transition: all .3s ease;
+}
+.u-switch .on {
+    z-index: 1;
+    left: 0;
+    text-indent: 10px;
+    text-align: left;
+}
+.u-switch .off {
+    left: 0;
+    right: 0;
+    padding-right: 10px;
+    text-align: right;
+    text-indent: -10px;
+}
+
+.u-switch.z-on .on {
+    right: 0;
+}
+.u-switch.z-off .on {
+    right: 100%;
+}
+
+.u-switch ins {
+    z-index: 2;
+    display: block;
+    position: absolute;
+    top: 1px;
+    width: 22px;
+    height: 22px;
+    border-radius: 12px;
+    line-height: 22px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 0 2px 0 rgba(0,0,0,.4);
+    -webkit-transition: all .3s ease;
+    -moz-transition: all .3s ease;
+    transition: all .3s ease;
+}
+.u-switch ins i {
+    display: none;
+    font-style: normal;
+}
+.u-switch.z-on ins .on-txt {
+    display: inline-block;
+}
+.u-switch.z-off ins .off-txt {
+    display: inline-block;
+}
+/* end switch */

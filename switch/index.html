@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width,initial-scale=1, maximud-grid-scale=1, minimud-grid-scale=1, user-scalable=no">
+	    <meta content="telephone=no" name="format-detection" />
+	    <meta content="email=no" name="format-detection" />
+		<title>DGrid</title>
+		<!-- css -->
+		<link rel="stylesheet" href="../common/css/font.css">
+		<link rel="stylesheet" href="css/dswitch.css">
+		<!-- js -->
+		<script src="../common/js/jquery.js"></script>
+		<script src="js/jquery.dswitch.js"></script>
+	</head>
+	<body>
+		<div id="box" class="box"><span></span></div>
+		<script>
+			$(function() {
+				/*$('#box span').createSwitch({
+					state: 'on',           //初始状态。on:开；off:关
+					onText: '打开',          //开启状态显示文本
+					offText: '关闭',         //关闭状态显示文本
+					width: 60              //开关宽度
+				});*/
+				$('#box').html(
+					createSwitch({
+						state: 'on',           //初始状态。on:开；off:关
+						onText: '打开',          //开启状态显示文本
+						offText: '关闭',         //关闭状态显示文本
+						width: 60,              //开关宽度
+						callback: function(obj) {
+							console.log(obj)
+						}
+					})
+				)
+			})
+		</script>
+	</body>
+</html>
