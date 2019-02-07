@@ -35,8 +35,6 @@
 **/
 
 ;(function(w, d, $) {
-	var _rowHeight = 36; //行高，用于表格自动高度
-
 	var _countBar = {}; //是否有汇总
 
 	var _countData = {}; //表格汇总数据
@@ -58,7 +56,7 @@
 			scroll = oDiv.clientWidth;
 			d.body.removeChild(oDiv);
 			return (noScroll - scroll);
-		})()
+		})();
 	});
 
 	var jsonExtend = function(de, json) {
@@ -525,23 +523,13 @@
 	};
 
 	var synchronizeScroll = function(grid) {
-		grid.root.body.main.dom.scroll(function() {
+		grid.root.body.dom.scroll(function() {
 			grid.root.head.main.dom.find('table').css('left', -$(this).scrollLeft());
 			grid.root.foot.main.dom.find('table').css('left', -$(this).scrollLeft());
-			grid.root.body.left.dom.find('table').css('top', -$(this).scrollTop());
-			grid.root.body.right.dom.find('table').css('top', -$(this).scrollTop());
+
+			grid.root.body.left.dom.css('left', $(this).scrollLeft());
+			grid.root.body.right.dom.css('right', -$(this).scrollLeft());
 		});
-
-		grid.root.body.left.dom.on('mousewheel DOMMouseScroll', onMouseScroll);
-		grid.root.body.right.dom.on('mousewheel DOMMouseScroll', onMouseScroll);
-		function onMouseScroll(e) {
-			var wheel = e.originalEvent.wheelDelta || -e.originalEvent.detail;
-			var delta = Math.max(-1, Math.min(1, wheel));
-			var n = grid.root.body.main.dom.scrollTop();
-
-			grid.root.body.main.dom.scrollTop(n - delta * 30);
-			e.preventDefault();
-		}
 	};
 
 	var bindEvent = function(grid) {
@@ -706,41 +694,36 @@
 
 			var sw = sh = 0;
 			if (height == 'auto') {
-				var h = this.data.length * _rowHeight + (sh ? sh : 0);
 				this.root.dom.height('auto');
+				this.root.body.dom.height('auto');
 
-				if (this.root.body.main.dom.find('table').innerWidth() > this.root.body.main.dom.width()) {
-					sh = _scrollSize;
+				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
+					sw = _scrollSize;
 				}
-
-				this.root.body.main.dom.height(h + sh);
 			} else {
 				var h = height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
 				this.root.dom.height(height - 2);
-				this.root.body.main.dom.height(h);
+				this.root.body.dom.height(h);
 
-				if (this.root.body.main.dom.find('table').height() > this.root.body.main.dom.height()) {
+				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
 					sw = _scrollSize;
 				}
 
-				if (this.root.body.main.dom.find('table').innerWidth() + sw > this.root.body.main.dom.width()) {
+				if (this.root.body.main.dom.innerWidth() + sw > this.root.body.dom.width()) {
 					sh = _scrollSize;
 
-					if (this.root.body.main.dom.find('table').height() + sh > this.root.body.main.dom.height()) {
+					if (this.root.body.main.dom.height() + sh > this.root.body.dom.height()) {
 						sw = _scrollSize;
 					}
 				}
-				this.root.body.left.dom.height(h - sh);
-				this.root.body.right.dom.height(h - sh);
 			}
 			this.root.head.right.dom.css('padding-right', sw);
-			this.root.body.right.dom.css('right', sw);
 			this.root.foot.right.dom.css('padding-right', sw);
 			this.root.head.main.dom.css({
 				'padding-left': this.root.head.left.dom.width(),
 				'padding-right': this.root.head.right.dom.width() - 1 + sw
 			});
-			this.root.body.main.dom.find('table').css({
+			this.root.body.main.dom.css({
 				'padding-left': this.root.body.left.dom.width(),
 				'padding-right': this.root.body.right.dom.width() - 1
 			});

@@ -31,6 +31,9 @@
 .d-grid-foot {
     position: relative;
 }
+.d-grid-body {
+    overflow: auto;
+}
 .d-grid-head .d-froze-left,
 .d-grid-head .d-froze-right,
 .d-grid-head .d-main {
@@ -39,6 +42,7 @@
 .d-grid-body .d-froze-left,
 .d-grid-body .d-froze-right,
 .d-grid-body .d-main {
+    float: left;
     background-color: #fff;
 }
 .d-grid-foot .d-froze-left,
@@ -49,9 +53,6 @@
 .d-grid-body .d-froze-left,
 .d-grid-body .d-froze-right {
     overflow: hidden;
-}
-.d-grid-body .d-main {
-    overflow-x: auto;
 }
 .d-grid-head th {
     border-width: 0 1px 1px 0;
@@ -118,6 +119,9 @@
     border-width: 0 1px 1px 0;
     border-style: dotted;
     border-color: #ccc;
+}
+.d-grid-body tr:nth-last-child(1) td {
+    border-width: 0 1px 0 0;
 }
 .d-grid-body .d-froze-left tr td:nth-last-child(1) {
     border-right-style: solid;
