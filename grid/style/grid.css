@@ -50,10 +50,6 @@
 .d-grid-foot .d-main {
     background: #f6ffaa;
 }
-.d-grid-body .d-froze-left,
-.d-grid-body .d-froze-right {
-    overflow: hidden;
-}
 .d-grid-head th {
     border-width: 0 1px 1px 0;
     border-style: solid;
@@ -106,7 +102,7 @@
     background: #fff;
 }
 .d-grid-body tr:nth-child(even) {
-    background: #fcfcfc;
+    background: #fafafa;
 }
 .d-grid-body tr.z-hover {
     background: #eee;
@@ -119,9 +115,6 @@
     border-width: 0 1px 1px 0;
     border-style: dotted;
     border-color: #ccc;
-}
-.d-grid-body tr:nth-last-child(1) td {
-    border-width: 0 1px 0 0;
 }
 .d-grid-body .d-froze-left tr td:nth-last-child(1) {
     border-right-style: solid;
@@ -393,3 +386,33 @@
 .d-grid-chk-all, .d-grid-chk {
     vertical-align: -2px;
 }
+
+/* 固定列阴影 */
+.d-froze-left:after,
+.d-froze-right:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    transition: all .6s ease;
+    opacity: 0;
+}
+.d-froze-left:after {
+    right: -7px;
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,.1) 0, rgba(0,0,0,0) 100%);
+    background-image: -moz-linear-gradient(left, rgba(0,0,0,.1) 0, rgba(0,0,0,0) 100%);
+    background-image: linear-gradient(to right, rgba(0,0,0,.1) 0, rgba(0,0,0,0) 100%);
+}
+.d-froze-right:after {
+    left: -7px;
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,0) 0, rgba(0,0,0,.1) 100%);
+    background-image: -moz-linear-gradient(left, rgba(0,0,0,0) 0, rgba(0,0,0,.1) 100%);
+    background-image: linear-gradient(to right, rgba(0,0,0,0) 0, rgba(0,0,0,.1) 100%);
+}
+.froze-left-shadow .d-froze-left:after,
+.froze-right-shadow .d-froze-right:after {
+    opacity: 1;
+}
+/* end 固定列阴影 */

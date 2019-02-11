@@ -39,7 +39,7 @@
 
 	var _countData = {}; //表格汇总数据
 
-	var _scrollSize = 0; //浏览器滚动条大小
+	_scrollSize = 0; //浏览器滚动条大小
 
 	var _sortBy = {}; //表格目前的排序
 
@@ -488,10 +488,10 @@
 		return html.join('')
 	};
 
-	var initRowHeight = function(grid) {
-		var $centerTr = grid.root.body.main.dom.find('tr');
-		var $leftTr = grid.root.body.left.dom.find('tr');
-		var $rightTr = grid.root.body.right.dom.find('tr');
+	var initRowHeight = function() {
+		var $centerTr = this.root.body.main.dom.find('tr');
+		var $leftTr = this.root.body.left.dom.find('tr');
+		var $rightTr = this.root.body.right.dom.find('tr');
 		for (var i = 0, len = $centerTr.length; i < len; i++) {
 			var hl = $leftTr.eq(i).height();
 			var hr = $rightTr.eq(i).height();
@@ -502,9 +502,9 @@
 			$centerTr.eq(i).height(h)
 		}
 
-		var $centerTr = grid.root.foot.main.dom.find('tr');
-		var $leftTr = grid.root.foot.left.dom.find('tr');
-		var $rightTr = grid.root.foot.right.dom.find('tr');
+		var $centerTr = this.root.foot.main.dom.find('tr');
+		var $leftTr = this.root.foot.left.dom.find('tr');
+		var $rightTr = this.root.foot.right.dom.find('tr');
 		var hl = $leftTr.height();
 		var hr = $rightTr.height();
 		var h = $centerTr.height();
@@ -513,24 +513,50 @@
 		$rightTr.height(h);
 		$centerTr.height(h)
 
-		grid.resize()
+		this.resize()
 	};
 
-	var updateRowIndex = function(grid) {
-		for (var i in grid.data) {
-			grid.data[i].__index = parseInt(i) + 1;
+	var updateRowIndex = function() {
+		for (var i in this.data) {
+			this.data[i].__index = parseInt(i) + 1;
 		}
 	};
 
-	var synchronizeScroll = function(grid) {
-		grid.root.body.dom.scroll(function() {
-			grid.root.head.main.dom.find('table').css('left', -$(this).scrollLeft());
-			grid.root.foot.main.dom.find('table').css('left', -$(this).scrollLeft());
+	var scrollEvent = function() {
+		var grid = this;
+		this.root.body.dom.scroll(function() {
+			var sl = $(this).scrollLeft();
+			grid.root.head.main.dom.find('table').css('left', -sl);
+			grid.root.foot.main.dom.find('table').css('left', -sl);
 
-			grid.root.body.left.dom.css('left', $(this).scrollLeft());
-			grid.root.body.right.dom.css('right', -$(this).scrollLeft());
+			grid.root.body.left.dom.css('left', sl);
+			grid.root.body.right.dom.css('right', -sl);
+			frozeShadow.call(grid);
 		});
 	};
+
+	var frozeShadow = function () {
+		var sl = this.root.body.dom.scrollLeft();
+		var maxSl = this.root.body.main.dom.innerWidth()
+				  - this.root.body.dom.width()
+				  + this.sw;
+
+		if (sl > 0 && !this.root.dom.hasClass('froze-left-shadow')) {
+			this.root.dom.addClass('froze-left-shadow');
+		} else if (sl == 0 && this.root.dom.hasClass('froze-left-shadow')) {
+			this.root.dom.removeClass('froze-left-shadow');
+		}
+
+		if (sl < maxSl && !this.root.dom.hasClass('froze-right-shadow')) {
+			this.root.dom.addClass('froze-right-shadow');
+		} else if (sl == maxSl && this.root.dom.hasClass('froze-right-shadow')) {
+			this.root.dom.removeClass('froze-right-shadow');
+		}
+
+		if (sl > maxSl) {
+			this.root.body.dom.scrollLeft(maxSl);
+		}
+	}
 
 	var bindEvent = function(grid) {
 		var $box = grid.box;
@@ -607,7 +633,7 @@
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
 			initFrame(this);
-			synchronizeScroll(this);
+			scrollEvent.call(this);
 			bindEvent(this);
 			this.resize();
 			this.update(1);
@@ -633,7 +659,7 @@
 					this.root.foot.main.dom.html(createCount(me.id, this.colsModel.main, data));
 					this.root.foot.left.dom.html(createCount(me.id, this.colsModel.left, data));
 					this.root.foot.right.dom.html(createCount(me.id, this.colsModel.right, data));
-					initRowHeight(me)
+					initRowHeight.call(me)
 				};
 				if (opt.pageBar) {
 					this.root.page.dom.html(createPage(page, opt.pageSize, me.rowsCount));
@@ -692,13 +718,13 @@
 
 			this.root.dom.width(width - 2);
 
-			var sw = sh = 0;
+			this.sw = this.sh = 0;
 			if (height == 'auto') {
 				this.root.dom.height('auto');
 				this.root.body.dom.height('auto');
 
 				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
-					sw = _scrollSize;
+					this.sw = _scrollSize;
 				}
 			} else {
 				var h = height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
@@ -706,22 +732,22 @@
 				this.root.body.dom.height(h);
 
 				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
-					sw = _scrollSize;
+					this.sw = _scrollSize;
 				}
 
-				if (this.root.body.main.dom.innerWidth() + sw > this.root.body.dom.width()) {
-					sh = _scrollSize;
+				if (this.root.body.main.dom.innerWidth() + this.sw > this.root.body.dom.width()) {
+					this.sh = _scrollSize;
 
-					if (this.root.body.main.dom.height() + sh > this.root.body.dom.height()) {
-						sw = _scrollSize;
+					if (this.root.body.main.dom.height() + this.sh > this.root.body.dom.height()) {
+						this.sw = _scrollSize;
 					}
 				}
 			}
-			this.root.head.right.dom.css('padding-right', sw);
-			this.root.foot.right.dom.css('padding-right', sw);
+			this.root.head.right.dom.css('padding-right', this.sw);
+			this.root.foot.right.dom.css('padding-right', this.sw);
 			this.root.head.main.dom.css({
 				'padding-left': this.root.head.left.dom.width(),
-				'padding-right': this.root.head.right.dom.width() - 1 + sw
+				'padding-right': this.root.head.right.dom.width() - 1 + this.sw
 			});
 			this.root.body.main.dom.css({
 				'padding-left': this.root.body.left.dom.width(),
@@ -729,8 +755,10 @@
 			});
 			this.root.foot.main.dom.css({
 				'padding-left': this.root.body.left.dom.width(),
-				'padding-right': this.root.body.right.dom.width() - 1 + sw
+				'padding-right': this.root.body.right.dom.width() - 1 + this.sw
 			});
+
+			frozeShadow.call(this);
 			return this;
 		},
 
@@ -771,13 +799,13 @@
 			for (var i = 0, len = data.length; i < len; i++) {
 				fun(data[i])
 			}
-			updateRowIndex(me);
-			initRowHeight(me);
+			updateRowIndex.call(me);
+			initRowHeight.call(me);
 
 			var $imgs = this.root.body.dom.find('img');
 			if ($imgs.length > 0) {
 				$imgs.load(function() {
-					initRowHeight(me);
+					initRowHeight.call(me);
 				})
 			}
 			return this;
@@ -905,7 +933,7 @@
 			for (var i = 0; i < data.length; i++) {
 				fun(data[i]);
 			}
-			updateRowIndex(grid);
+			updateRowIndex.call(grid);
 			return this;
 		},
 
@@ -914,7 +942,7 @@
 				$(this.rows[i].__$tr).remove();
 				this.grid.data.splice(this.rows[i].__index-1, 1);
 			}
-			updateRowIndex(this.grid);
+			updateRowIndex.call(this.grid);
 			this.grid.resize();
 			return this;
 		},
