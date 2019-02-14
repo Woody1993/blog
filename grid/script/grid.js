@@ -107,6 +107,9 @@
 			right: []
 		};
 
+		var leftSpaceWidth = rightSpaceWidth = 0;
+		var leftSpaceObj, rightSpaceObj;
+
 		if (opt.selectModel > 0) {
 			if (opt.selectAll && opt.selectModel == 2) {
 				var $allChk = $('<input type="checkbox" class="d-grid-chk-all" />')
@@ -174,7 +177,18 @@
 					} else if (typeof cols[i].count == 'function') {
 						_countBar[grid.id] = true
 					}
-					cols[i].width = (parseInt(cols[i].width) || 100) + 14 + 'px';
+					var width = (parseInt(cols[i].width) || 100) + 14;
+
+					if (cols[i].frozen == 'left') leftSpaceWidth += width + 1;
+					else if (cols[i].frozen == 'right') rightSpaceWidth += width + 1;
+
+					if (cols[i].name == '__leftspace') {
+						leftSpaceObj = cols[i];
+					} else if (cols[i].name == '__rightspace') {
+						rightSpaceObj = cols[i];
+					} else {
+						cols[i].width = width + 'px';
+					}
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
 				width += parseInt(cols[i].width) + 1;
@@ -182,13 +196,8 @@
 			return width - 1 + 'px';
 		};
 		sifter(cols);
-		
-		json.left.length && opt.colModel.unshift({
-			name: '__leftspace'
-		});
-		json.right.length && opt.colModel.push({
-			name: '__rightspace'
-		});
+		leftSpaceObj.width = leftSpaceWidth - 1 + 'px';
+		rightSpaceObj.width = rightSpaceWidth - 2 + 'px';
 		return json
 	};
 
@@ -357,7 +366,7 @@
 			var name = col.name;
 			var value = data[name];
 
-			var $td = $('<td><div class="td" style="width:' + col.width + '; text-align:' + col.align + '">');
+			var $td = $('<td><div class="'+ (['__leftspace', '__rightspace'].indexOf(name) > -1 ? name : 'td')+'" style="width:' + col.width + '; text-align:' + col.align + '">');
 
 			if (col.editable) {
 				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.iptClassName);
@@ -536,15 +545,15 @@
 			grid.root.head.main.dom[0].scrollLeft = sl;
 			grid.root.foot.main.dom[0].scrollLeft = sl;
 
-			//grid.root.body.left.dom.css('left', sl);
-			//grid.root.body.right.dom.css('right', -sl);
+			grid.root.body.left.dom.css('left', sl);
+			grid.root.body.right.dom.css('right', -sl);
 			frozeShadow.call(grid);
 		});
 	};
 
 	var frozeShadow = function () {
 		var sl = this.root.body.dom.scrollLeft();
-		var maxSl = this.root.body.main.dom.innerWidth()
+		var maxSl = this.root.body.main.dom.width()
 				  - this.root.body.dom.width()
 				  + this.sw;
 
@@ -558,10 +567,6 @@
 			this.root.dom.addClass('froze-right-shadow');
 		} else if (sl == maxSl && this.root.dom.hasClass('froze-right-shadow')) {
 			this.root.dom.removeClass('froze-right-shadow');
-		}
-
-		if (sl > maxSl) {
-			this.root.body.dom.scrollLeft(maxSl);
 		}
 	}
 
@@ -638,6 +643,12 @@
 			this.rowsCount = 0;
 			this.width = opt.width;
 			this.height = opt.height;
+			opt.colModel.unshift({
+				name: '__leftspace'
+			});
+			opt.colModel.push({
+				name: '__rightspace'
+			});
 			this.colsModel = getColGroup(this);
 			initFrame(this);
 			scrollEvent.call(this);
@@ -752,21 +763,6 @@
 			}
 			this.root.head.right.dom.css('padding-right', this.sw);
 			this.root.foot.right.dom.css('padding-right', this.sw);
-			// this.root.head.main.dom.find('table').css({
-			// 	'margin-left': this.root.head.left.dom.width(),
-			// 	'margin-right': this.root.head.right.dom.width() - 1 + this.sw
-			// });
-			this.root.head.main.dom.find('table tr:first th:first div').width(this.root.head.left.dom.width() - 15);
-			this.root.head.main.dom.find('table tr:first th:last div').width(this.root.head.right.dom.width() - 16 + this.sw);
-			
-			this.root.body.main.dom.css({
-				'padding-left': this.root.body.left.dom.width(),
-				'padding-right': this.root.body.right.dom.width() - 1
-			});
-			this.root.foot.main.dom.css({
-				'padding-left': this.root.body.left.dom.width(),
-				'padding-right': this.root.body.right.dom.width() - 1 + this.sw
-			});
 
 			frozeShadow.call(this);
 			return this;

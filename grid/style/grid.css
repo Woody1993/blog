@@ -49,6 +49,7 @@
 .d-grid-foot .d-froze-left,
 .d-grid-foot .d-froze-right,
 .d-grid-foot .d-main {
+    overflow: hidden;
     background: #f6ffaa;
 }
 .d-grid-head th {
