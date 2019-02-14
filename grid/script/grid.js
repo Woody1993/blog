@@ -45,7 +45,7 @@
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected']; //系统列集合
+	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected', '__leftspace', '__rightspace']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
@@ -182,6 +182,13 @@
 			return width - 1 + 'px';
 		};
 		sifter(cols);
+		
+		json.left.length && opt.colModel.unshift({
+			name: '__leftspace'
+		});
+		json.right.length && opt.colModel.push({
+			name: '__rightspace'
+		});
 		return json
 	};
 
@@ -526,11 +533,11 @@
 		var grid = this;
 		this.root.body.dom.scroll(function() {
 			var sl = $(this).scrollLeft();
-			grid.root.head.main.dom.find('table').css('left', -sl);
-			grid.root.foot.main.dom.find('table').css('left', -sl);
+			grid.root.head.main.dom[0].scrollLeft = sl;
+			grid.root.foot.main.dom[0].scrollLeft = sl;
 
-			grid.root.body.left.dom.css('left', sl);
-			grid.root.body.right.dom.css('right', -sl);
+			//grid.root.body.left.dom.css('left', sl);
+			//grid.root.body.right.dom.css('right', -sl);
 			frozeShadow.call(grid);
 		});
 	};
@@ -745,10 +752,13 @@
 			}
 			this.root.head.right.dom.css('padding-right', this.sw);
 			this.root.foot.right.dom.css('padding-right', this.sw);
-			this.root.head.main.dom.css({
-				'padding-left': this.root.head.left.dom.width(),
-				'padding-right': this.root.head.right.dom.width() - 1 + this.sw
-			});
+			// this.root.head.main.dom.find('table').css({
+			// 	'margin-left': this.root.head.left.dom.width(),
+			// 	'margin-right': this.root.head.right.dom.width() - 1 + this.sw
+			// });
+			this.root.head.main.dom.find('table tr:first th:first div').width(this.root.head.left.dom.width() - 15);
+			this.root.head.main.dom.find('table tr:first th:last div').width(this.root.head.right.dom.width() - 16 + this.sw);
+			
 			this.root.body.main.dom.css({
 				'padding-left': this.root.body.left.dom.width(),
 				'padding-right': this.root.body.right.dom.width() - 1

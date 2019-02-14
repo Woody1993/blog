@@ -22,6 +22,21 @@
 				padding: 0;
 				margin: 0;
 			}
+
+			.console {
+				height: 100px;
+				margin: 20px;
+				border: 1px solid #999;
+				overflow: auto;
+				background: #f8f8f8;
+			}
+			.console > p {
+				padding: 2px 10px;
+				line-height: 20px;
+				font-size: 12px;
+				color: #333;
+			}
+
 			.box {
 				height: 600px;
 				margin: 20px;
@@ -39,8 +54,20 @@
 				line-height: 40px;
 			}
 		</style>
+
+		<script>
+			function log() {
+				var str = [];
+				for (var i in arguments) {
+					str.push(arguments[0]);
+				}
+				$('#console').append('<p>'+str.join('，')+'</p>').scrollTop(9999999999999);
+			}
+		</script>
 	</head>
 	<body>
+		<div id="console" class="console"></div>
+
 		<div id="box" class="box"></div>
 
 		<div class="op">

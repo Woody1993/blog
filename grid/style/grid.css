@@ -37,6 +37,7 @@
 .d-grid-head .d-froze-left,
 .d-grid-head .d-froze-right,
 .d-grid-head .d-main {
+    overflow: hidden;
     background-color: #f6f6f6;
 }
 .d-grid-body .d-froze-left,
