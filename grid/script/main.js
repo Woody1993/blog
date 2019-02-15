@@ -1,6 +1,7 @@
 $(function() {
 	grid = dGrid({
 		box: '#box',
+
 		url: 'json/data.json',
 		dataType: 'text',
 		dataFormatter: function(data) {
@@ -9,7 +10,7 @@ $(function() {
 		countDataFormatter: function(data) {
 			return data.count;
 		},
-		rowsCountFormatter: function(data) {
+		totalDataFormatter: function(data) {
 			return data.total;
 		},
 
@@ -17,10 +18,11 @@ $(function() {
 		height: function() {
 			return window.gridHeight || '600'
 		},
+
 		rowOnClick: function(data) {
 			console.log('click:', data);
 		},
-		beforeSelect: function(data) {
+		rowBeforeSelect: function(data) {
 			console.log('beforeSelect:', data);
 			if (data.status == '待付款2') return false;
 		},
@@ -28,13 +30,16 @@ $(function() {
 			console.log('select:', data);
 		},
 
-		selectModel: 1,
-		callSelectModel: 2,
-		selectAll: true,
+		check: {
+			multiple: true,
+			checkAll: true,
+			callType: 0
+		},
+
 		colModel: [
 			{
-				title: '序号',
 				sys: 'index',
+				title: '序号',
 				frozen: 'left',
 				width: 50,
 				align: 'center',

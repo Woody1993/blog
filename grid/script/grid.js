@@ -45,7 +45,7 @@
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected', '__leftspace', '__rightspace']; //系统列集合
+	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
@@ -58,13 +58,6 @@
 			return (noScroll - scroll);
 		})();
 	});
-
-	var jsonExtend = function(de, json) {
-		for (var i in json) {
-			de[i] = json[i]
-		}
-		return de
-	};
 
 	var getData = function(grid, page, fun) {
 		var param = {};
@@ -92,7 +85,7 @@
 				if (opt.countDataFormatter) {
 					_countData[grid.id] = opt.countDataFormatter(msg)
 				}
-				grid.rowsCount = opt.rowsCountFormatter(msg);
+				grid.rowsCount = opt.totalDataFormatter(msg);
 				data = opt.dataFormatter(msg);
 				fun(data);
 			}
@@ -107,19 +100,11 @@
 			right: []
 		};
 
-		var leftSpaceWidth = rightSpaceWidth = 0;
-		var leftSpaceObj, rightSpaceObj;
-
-		if (opt.selectModel > 0) {
-			if (opt.selectAll && opt.selectModel == 2) {
-				var $allChk = $('<input type="checkbox" class="d-grid-chk-all" />')
-			} else {
-				var $allChk = ''
-			};
-			if (opt.callSelectModel != 1) {
+		if (opt.check) {
+			if (opt.check.callType != 1) {
 				opt.colModel.unshift({
 					width: 35,
-					title: $allChk,
+					title: opt.check.multiple && opt.check.checkAll ? $('<input type="checkbox" class="d-grid-chk-all" />') : '',
 					name: '__checkbox',
 					frozen: 'left',
 					align: 'center',
@@ -131,12 +116,31 @@
 		};
 
 		var cols = opt.colModel;
+
+		var leftSpaceObj, rightSpaceObj;
+		for (var i in cols) {
+			if (cols[i].frozen == 'left' && !leftSpaceObj)  {
+				leftSpaceObj = {
+					space: true,
+					width: -1
+				};
+			} else if (cols[i].frozen == 'right' && !rightSpaceObj) {
+				rightSpaceObj = {
+					space: true,
+					width: -2
+				};
+			}
+			if (leftSpaceObj && rightSpaceObj) break;
+		}
+		leftSpaceObj && cols.unshift(leftSpaceObj);
+		rightSpaceObj && cols.push(rightSpaceObj);
+		
 		var sifter = function(cols, frozen) {
 			var width = 0;
 			for (var i in cols) {
 				if (!cols[i]) continue;
 				if (cols[i].subCol) {
-					cols[i] = jsonExtend({
+					cols[i] = $.extend({
 						title: '',
 						align: 'center',
 						frozen: 'none'
@@ -146,7 +150,7 @@
 					if (cols[i].sys == 'index') {
 						cols[i].name = '__index';
 					}
-					cols[i] = jsonExtend({
+					cols[i] = $.extend({
 						title: '',
 						name: '',
 						width: 100,
@@ -168,36 +172,31 @@
 							return count
 						}
 					}, cols[i]);
-					if (frozen) cols[i].frozen = frozen;
-					if (cols[i].count == true) {
-						_countBar[grid.id] = true;
-						cols[i].count = function(value, row) {
-							return parseFloat(value);
+
+					if (!cols[i].space) {
+						if (frozen) cols[i].frozen = frozen;
+						if (cols[i].count == true) {
+							_countBar[grid.id] = true;
+							cols[i].count = function(value, row) {
+								return parseFloat(value);
+							}
+						} else if (typeof cols[i].count == 'function') {
+							_countBar[grid.id] = true
 						}
-					} else if (typeof cols[i].count == 'function') {
-						_countBar[grid.id] = true
+						var width = (parseInt(cols[i].width) || 100) + 14;
+						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += width + 1;
+						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += width + 1;
+	
+						cols[i].width = width;
 					}
-					var width = (parseInt(cols[i].width) || 100) + 14;
 
-					if (cols[i].frozen == 'left') leftSpaceWidth += width + 1;
-					else if (cols[i].frozen == 'right') rightSpaceWidth += width + 1;
-
-					if (cols[i].name == '__leftspace') {
-						leftSpaceObj = cols[i];
-					} else if (cols[i].name == '__rightspace') {
-						rightSpaceObj = cols[i];
-					} else {
-						cols[i].width = width + 'px';
-					}
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
-				width += parseInt(cols[i].width) + 1;
+				width += cols[i].width + 1;
 			}
-			return width - 1 + 'px';
+			return width - 1;
 		};
 		sifter(cols);
-		leftSpaceObj.width = leftSpaceWidth - 1 + 'px';
-		rightSpaceObj.width = rightSpaceWidth - 2 + 'px';
 		return json
 	};
 
@@ -321,14 +320,14 @@
 			};
 			for (var i = 0, len = cols.length; i < len; i++) {
 				if (cols[i].subCol) {
-					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="width:' + cols[i].width + ';height:35px;line-height:35px;text-align:' + cols[i].align + ';"></div></th>');
+					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="width:' + cols[i].width + 'px;height:35px;line-height:35px;text-align:' + cols[i].align + ';"></div></th>');
 					$th.find('div').html(cols[i].title);
 					for (var j in cols[i].subCol) {
 						subCol.push(cols[i].subCol[j])
 					}
 				} else {
 					var rowspan = maxDepth - cols[i].depth + 1;
-					var $th = $('<th colspan="1" rowspan="' + (maxDepth - cols[i].depth + 1) + '"><div class="th" style="width:' + cols[i].width + ';height:' + (rowspan * 35 + rowspan - 1) + 'px;line-height:' + (rowspan * 35 + rowspan - 1) + 'px;text-align:' + cols[i].align + ';"></div></th>');
+					var $th = $('<th colspan="1" rowspan="' + (maxDepth - cols[i].depth + 1) + '"><div class="th" style="width:' + cols[i].width + 'px;height:' + (rowspan * 35 + rowspan - 1) + 'px;line-height:' + (rowspan * 35 + rowspan - 1) + 'px;text-align:' + cols[i].align + ';"></div></th>');
 					setSort($th.find('div').html(cols[i].title), cols[i])
 				};
 
@@ -366,7 +365,7 @@
 			var name = col.name;
 			var value = data[name];
 
-			var $td = $('<td><div class="'+ (['__leftspace', '__rightspace'].indexOf(name) > -1 ? name : 'td')+'" style="width:' + col.width + '; text-align:' + col.align + '">');
+			var $td = $('<td><div class="td" style="width:' + col.width + 'px;text-align:' + col.align + '">');
 
 			if (col.editable) {
 				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.iptClassName);
@@ -425,29 +424,35 @@
 		};
 
 		$tr.click(function() {
-			grid.opt.rowOnClick(rh.getData());
+			opt.rowOnClick(rh.getData());
 		});
-		if (opt.selectModel != 0) {
-			if (opt.callSelectModel == 0 || opt.callSelectModel == 2) {
+		if (opt.check) {
+			if (opt.check.callType == 0 || opt.check.callType == 1) {
 				$tr.find('.d-grid-chk').click(function(e) {
 					e.stopPropagation();
 					if ($tr.hasClass('z-crt')) {
 						rh.unselect();
 					} else {
-						if (grid.opt.beforeSelect(rh.getData()) === false) {
+						if (opt.rowBeforeSelect(rh.getData()) === false) {
 							$(this).removeAttr('checked');
 							return;
+						}
+						if (!opt.check.multiple) {
+							grid.getCrtRows().unselect();
 						}
 						rh.select();
 					}
 				});
 			}
-			if (opt.callSelectModel == 1 || opt.callSelectModel == 2) {
+			if (opt.check.callType == 0 || opt.check.callType == 2) {
 				$tr.click(function() {
 					if ($(this).hasClass('z-crt')) {
 						rh.unselect();
 					} else {
-						if (grid.opt.beforeSelect(rh.getData()) === false) return;
+						if (opt.rowBeforeSelect(rh.getData()) === false) return;
+						if (!opt.check.multiple) {
+							grid.getCrtRows().unselect();
+						}
 						rh.select();
 					}
 				});
@@ -473,7 +478,7 @@
 		var insertTd = function(col) {
 			var name = col.name;
 			var count = '';
-			var $td = $('<td><div class="td" style="width:' + col.width + '">');
+			var $td = $('<td><div class="td" style="width:' + col.width + 'px">');
 			if (typeof col.count == 'function') {
 				count = (function(name) {
 					var count = 0;
@@ -574,11 +579,15 @@
 		var $box = grid.box;
 		grid.root.head.left.dom.find('.d-grid-chk-all').click(function() {
 			if ($(this).attr('checked')) {
-				grid.selectRows('all')
+				grid.getAllRows().each(function() {
+					if (grid.opt.rowBeforeSelect(this.getData()) === false) return;
+					this.select();
+				});
 			} else {
-				grid.unselectRows('all')
+				grid.getAllRows().unselect();
 			}
 		});
+
 		$box.find('.d-grid-sort-th').click(function() {
 			var sortType = $(this).data('sortType').split(',');
 			var sortParam = $(this).data('sortParam');
@@ -609,7 +618,7 @@
 
 	main.fn = main.prototype = {
 		init: function(opt) {
-			opt = jsonExtend({
+			opt = $.extend({
 				box: 'body',
 				dataFrom: 'ajax',
 				url: '',
@@ -621,34 +630,33 @@
 					return data.data
 				},
 				countDataFormatter: false,
-				rowsCountFormatter: function(data) {
+				totalDataFormatter: function(data) {
 					return data.total
 				},
 				width: '100%',
 				height: 'auto',
-				indexColWidth: 35,
-				indexFormatter: false,
-				selectModel: 0,  // 0：不支持选择；1：支持单选；2：支持多选
-				callSelectModel: 0,  // 0: 通过点击复选框；1：通过点击行；2：通过点击复选框或点击行
-				selectAll: false,  // 是否支持全选
 				colModel: [],
+				check: false,
 				pageBar: true,
 				rowOnClick: function() {},
-				beforeSelect: function() {},
+				rowBeforeSelect: function() {},
 				rowOnSelect: function() {}
 			}, opt || {});
+
+			if (opt.check) {
+				opt.check = $.extend({
+					multiple: false,
+					checkAll: false,
+					callType: 0  // 0: 通过点击复选框或点击行；1：通过点击复选框；2：通过点击行；
+				}, is(opt.check) == 'object' ? opt.check : {});
+			}
+
 			this.opt = opt;
 			this.box = $(opt.box + ':first');
 			if (this.box.length == 0) return this;
 			this.rowsCount = 0;
 			this.width = opt.width;
 			this.height = opt.height;
-			opt.colModel.unshift({
-				name: '__leftspace'
-			});
-			opt.colModel.push({
-				name: '__rightspace'
-			});
 			this.colsModel = getColGroup(this);
 			initFrame(this);
 			scrollEvent.call(this);
@@ -1001,6 +1009,13 @@
 				}
 			}
 			return this;
+		},
+
+		each: function(fun) {
+			for (var i in this.rows) {
+				var rh = new rowsHandle(this.grid, [this.rows[i]]);
+				fun.call(rh, i);
+			}
 		}
 	};
 

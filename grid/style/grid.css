@@ -37,7 +37,6 @@
 .d-grid-head .d-froze-left,
 .d-grid-head .d-froze-right,
 .d-grid-head .d-main {
-    overflow: hidden;
     background-color: #f6f6f6;
 }
 .d-grid-body .d-froze-left,
@@ -49,8 +48,26 @@
 .d-grid-foot .d-froze-left,
 .d-grid-foot .d-froze-right,
 .d-grid-foot .d-main {
-    overflow: hidden;
     background: #f6ffaa;
+}
+.d-grid-head .d-main,
+.d-grid-foot .d-main {
+    overflow: hidden;
+}
+.d-grid-head .d-main,
+.d-grid-foot .d-main {
+    font-size: 0;
+    white-space: nowrap;
+}
+.d-grid-head .d-main table,
+.d-grid-foot .d-main table {
+    display: inline-block;
+}
+.d-grid-head .d-main:after,
+.d-grid-foot .d-main:after {
+    content: '';
+    display: inline-block;
+    width: 100px;
 }
 .d-grid-head th {
     border-width: 0 1px 1px 0;
