@@ -19,6 +19,8 @@
  * 						└ 选中  select √
  * 						└ 取消选中  unselect √
  * 						└ 刷新数据 update √
+ * 						└ 遍历 each √
+ * 						└ 获取指定序号行 eq  √
  * 				6.优化排序方法  [2]
  * 				7.优化汇总行  [1]
  * 				8.优化分页栏，支持两种模式  [1]
@@ -45,7 +47,7 @@
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__checkbox', '__selected']; //系统列集合
+	var _sysColName = ['__$tr', '__index', '__selected']; //系统列集合
 
 	$(function() {
 		_scrollSize = (function() {
@@ -101,15 +103,20 @@
 		};
 
 		if (opt.check) {
-			if (opt.check.callType != 1) {
+			if (opt.check.callType != 2) {
 				opt.colModel.unshift({
 					width: 35,
 					title: opt.check.multiple && opt.check.checkAll ? $('<input type="checkbox" class="d-grid-chk-all" />') : '',
-					name: '__checkbox',
+					name: '__selected',
 					frozen: 'left',
 					align: 'center',
-					dataFormatter: function() {
-						return $('<input type="checkbox" class="d-grid-chk" />');
+					dataFormatter: function(data, rh) {
+						return $('<input type="checkbox" class="d-grid-chk" ' + (data ? 'checked="true"' : '') + ' />').click(function(e) {
+							e.stopPropagation();
+							if (data) rh.unselect();
+							else rh.select();
+							return false;
+						});
 					}
 				})
 			}
@@ -426,38 +433,15 @@
 		$tr.click(function() {
 			opt.rowOnClick(rh.getData());
 		});
-		if (opt.check) {
-			if (opt.check.callType == 0 || opt.check.callType == 1) {
-				$tr.find('.d-grid-chk').click(function(e) {
-					e.stopPropagation();
-					if ($tr.hasClass('z-crt')) {
-						rh.unselect();
-					} else {
-						if (opt.rowBeforeSelect(rh.getData()) === false) {
-							$(this).removeAttr('checked');
-							return;
-						}
-						if (!opt.check.multiple) {
-							grid.getCrtRows().unselect();
-						}
-						rh.select();
-					}
-				});
-			}
-			if (opt.check.callType == 0 || opt.check.callType == 2) {
-				$tr.click(function() {
-					if ($(this).hasClass('z-crt')) {
-						rh.unselect();
-					} else {
-						if (opt.rowBeforeSelect(rh.getData()) === false) return;
-						if (!opt.check.multiple) {
-							grid.getCrtRows().unselect();
-						}
-						rh.select();
-					}
-				});
-			}
-		};
+		if (opt.check && opt.check.callType != 1) {
+			$tr.click(function() {
+				if ($(this).hasClass('z-crt')) {
+					rh.unselect();
+				} else {
+					rh.select();
+				}
+			});
+		}
 
 		$tr.find('.d-grid-ipt').click(function(e) {
 			e.stopPropagation();
@@ -579,10 +563,7 @@
 		var $box = grid.box;
 		grid.root.head.left.dom.find('.d-grid-chk-all').click(function() {
 			if ($(this).attr('checked')) {
-				grid.getAllRows().each(function() {
-					if (grid.opt.rowBeforeSelect(this.getData()) === false) return;
-					this.select();
-				});
+				grid.getAllRows().select();
 			} else {
 				grid.getAllRows().unselect();
 			}
@@ -978,14 +959,21 @@
 		},
 
 		select: function() {
-			for (var i in this.rows) {
-				var row = this.rows[i];
-				if ($(row.__$tr).hasClass('z-crt')) continue;
-				$(row.__$tr).addClass('z-crt').find('.d-grid-chk').attr('checked', 'true');
-				row.__selected = true;
+			var grid = this.grid;
+			this.each(function() {
+				if ($(this.rows[0].__$tr).hasClass('z-crt')) return;
 
-				this.grid.opt.rowOnSelect(rowsDataClean(row));
-			}
+				if (grid.opt.rowBeforeSelect(this.getData()) === false) return;
+				
+				if (!grid.opt.check.multiple) {
+					grid.getCrtRows().unselect();
+				}
+
+				$(this.rows[0].__$tr).addClass('z-crt');
+				this.rows[0].__selected = true;
+
+				grid.opt.rowOnSelect(rowsDataClean(this));
+			});
 			return this;
 		},
 
@@ -993,7 +981,7 @@
 			for (var i in this.rows) {
 				var row = this.rows[i];
 				if (!$(row.__$tr).hasClass('z-crt')) continue;
-				$(row.__$tr).removeClass('z-crt').find('.d-grid-chk').removeAttr('checked');
+				$(row.__$tr).removeClass('z-crt');
 				row.__selected = false;
 			}
 			return this;
@@ -1014,8 +1002,14 @@
 		each: function(fun) {
 			for (var i in this.rows) {
 				var rh = new rowsHandle(this.grid, [this.rows[i]]);
-				fun.call(rh, i);
+				if (fun.call(rh, i) === false) break;
 			}
+			return this;
+		},
+
+		eq: function(n) {
+			if (n >= this.length || n < -this.length) return;
+			return new rowsHandle(this.grid, [this.rows[n < 0 ? this.length + n : n]]);
 		}
 	};
 
