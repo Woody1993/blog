@@ -229,10 +229,10 @@
 			dom: $('<div class="d-grid-body"></div>').appendTo(grid.root.dom)
 		};
 		grid.root.body.left = {
-			dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.body.dom)
+			dom: $('<div class="d-froze-left">').appendTo(grid.root.body.dom)
 		};
 		grid.root.body.right = {
-			dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.body.dom)
+			dom: $('<div class="d-froze-right">').appendTo(grid.root.body.dom)
 		};
 		grid.root.body.main = {
 			dom: $('<div class="d-main"></div>').appendTo(grid.root.body.dom)
@@ -265,9 +265,15 @@
 		grid.root.head.right.dom.append($headObjs[2]);
 
 
-		grid.root.body.main.dom.append('<table><tbody></tbody></table>');
-		grid.root.body.left.dom.append('<table><tbody></tbody></table>');
-		grid.root.body.right.dom.append('<table><tbody></tbody></table>');
+		grid.root.body.main.tb = {
+			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.main.dom)
+		};
+		grid.root.body.left.tb = {
+			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.left.dom)
+		};
+		grid.root.body.right.tb = {
+			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.right.dom)
+		};
 
 		grid.box.html(grid.root.dom);
 	};
@@ -529,21 +535,48 @@
 
 	var scrollEvent = function() {
 		var grid = this;
-		this.root.body.dom.scroll(function() {
+		this.root.body.main.dom.scroll(function() {
 			var sl = $(this).scrollLeft();
+			var st = $(this).scrollTop();
 			grid.root.head.main.dom[0].scrollLeft = sl;
 			grid.root.foot.main.dom[0].scrollLeft = sl;
 
-			grid.root.body.left.dom.css('left', sl);
-			grid.root.body.right.dom.css('right', -sl);
+			grid.root.body.left.dom[0].scrollTop = st;
+			grid.root.body.right.dom[0].scrollTop = st;
 			frozeShadow.call(grid);
 		});
+
+		grid.root.body.left.dom.on('mousewheel DOMMouseScroll', onMouseScroll);
+		grid.root.body.right.dom.on('mousewheel DOMMouseScroll', onMouseScroll);
+		var timer, init, cum, dir;
+		function onMouseScroll(e) {
+			var wheel = e.originalEvent.wheelDelta || -e.originalEvent.detail;
+			var delta = Math.max(-1, Math.min(1, wheel));
+
+			clearTimeout(timer);
+			if (dir != delta) {
+				dir = delta;
+				init = grid.root.body.main.dom.scrollTop();
+				cum = 0;
+			} else {
+				timer = setTimeout(function() {
+					init = grid.root.body.main.dom.scrollTop();
+					cum = 0;
+				}, 100);
+			}
+
+			cum += delta;
+			grid.root.body.main.dom.stop().animate({
+				'scrollTop': init - 100*cum
+			}, 100);
+			e.preventDefault();
+		}
 	};
 
 	var frozeShadow = function () {
-		var sl = this.root.body.dom.scrollLeft();
-		var maxSl = this.root.body.main.dom.width()
-				  - this.root.body.dom.width()
+		var sl = this.root.body.main.dom.scrollLeft();
+		var maxSl = this.root.body.main.tb.dom.width()
+				  - this.root.body.main.dom.width()
 				  + this.sw;
 
 		if (sl > 0 && !this.root.dom.hasClass('froze-left-shadow')) {
@@ -655,9 +688,9 @@
 			page = page > maxnum ? maxnum : page;
 			me.nowPage = page;
 			this.data = [];
-			this.root.body.main.dom.find('tbody').html('');
-			this.root.body.left.dom.find('tbody').html('');
-			this.root.body.right.dom.find('tbody').html('');
+			this.root.body.main.tb.dom.html('');
+			this.root.body.left.tb.dom.html('');
+			this.root.body.right.tb.dom.html('');
 
 			var create = function (data) {
 				me.pushRows(data);
@@ -730,28 +763,32 @@
 				this.root.dom.height('auto');
 				this.root.body.dom.height('auto');
 
-				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
-					this.sw = _scrollSize;
+				if (this.root.body.main.tb.dom.width() > this.root.body.main.dom.width()) {
+					this.sh = _scrollSize;
 				}
 			} else {
 				var h = height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
 
-				if (this.root.body.main.dom.height() > this.root.body.dom.height()) {
+				if (this.root.body.main.tb.dom.height() > this.root.body.main.dom.height()) {
 					this.sw = _scrollSize;
 				}
 
-				if (this.root.body.main.dom.innerWidth() + this.sw > this.root.body.dom.width()) {
+				if (this.root.body.main.tb.dom.width() + this.sw > this.root.body.main.dom.width()) {
 					this.sh = _scrollSize;
 
-					if (this.root.body.main.dom.height() + this.sh > this.root.body.dom.height()) {
+					if (this.root.body.main.tb.dom.height() + this.sh > this.root.body.main.dom.height()) {
 						this.sw = _scrollSize;
 					}
 				}
 			}
 			this.root.head.right.dom.css('padding-right', this.sw);
 			this.root.foot.right.dom.css('padding-right', this.sw);
+
+			this.root.body.left.dom.css('bottom', this.sh);
+			this.root.body.right.dom.css('bottom', this.sh);
+			this.root.body.right.dom.css('right', this.sw);
 
 			frozeShadow.call(this);
 			return this;
@@ -778,9 +815,9 @@
 			if (total == 0 || index == -1) {
 				var fun = function(data) {
 					this.data.push(data);
-					this.root.body.main.dom.find('tbody').append(createRow(this, this.colsModel.main, data));
-					this.root.body.left.dom.find('tbody').append(createRow(this, this.colsModel.left, data));
-					this.root.body.right.dom.find('tbody').append(createRow(this, this.colsModel.right, data));
+					this.root.body.main.tb.dom.append(createRow(this, this.colsModel.main, data));
+					this.root.body.left.tb.dom.append(createRow(this, this.colsModel.left, data));
+					this.root.body.right.tb.dom.append(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			} else {
 				var $trs = this.data[index].__$tr;
@@ -912,9 +949,9 @@
 			if (total == 0 || index == -1) {
 				var fun = function(data) {
 					this.data.push(data);
-					this.root.body.main.dom.find('tbody').append(data.__$tr[0]);
-					this.root.body.left.dom.find('tbody').append(data.__$tr[1]);
-					this.root.body.right.dom.find('tbody').append(data.__$tr[2]);
+					this.root.body.main.tb.dom.append(data.__$tr[0]);
+					this.root.body.left.tb.dom.append(data.__$tr[1]);
+					this.root.body.right.tb.dom.append(data.__$tr[2]);
 				}.bind(this.grid);
 			} else {
 				var $trs = this.grid.data[index].__$tr;

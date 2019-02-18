@@ -29,12 +29,10 @@
 .d-grid-body,
 .d-grid-foot {
     position: relative;
-}
-.d-grid-head,
-.d-grid-foot {
     overflow: hidden;
 }
-.d-grid-body {
+.d-grid-body .d-main {
+    height: 100%;
     overflow: auto;
 }
 .d-grid-head .d-froze-left,
@@ -45,7 +43,6 @@
 .d-grid-body .d-froze-left,
 .d-grid-body .d-froze-right,
 .d-grid-body .d-main {
-    float: left;
     background-color: #fff;
 }
 .d-grid-foot .d-froze-left,
@@ -162,6 +159,8 @@
     z-index: 1;
     position: absolute;
     top: 0;
+    bottom: 0;
+    overflow: hidden;
     transition: box-shadow .6s ease;
 }
 .d-froze-left {
