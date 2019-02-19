@@ -1,0 +1,65 @@
+/* 清除内外边距 */
+body, h1, h2, h3, h4, h5, h6, hr, p, blockquote, /* structural elements 结构元素 */
+dl, dt, dd, ul, ol, li, /* list elements 列表元素 */
+pre, /* text formatting elements 文本格式元素 */
+fieldset, lengend, button, input, textarea, select, /* form elements 表单元素 */
+th, td { /* table elements 表格元素 */
+    margin: 0;
+    padding: 0;
+}
+
+/* 设置默认字体 */
+body,
+button, input, select, textarea {
+    font: 14px/1 Arial, Verdana, "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+/* 常用字体大小 */
+h1 { font-size: 18px; }
+h2 { font-size: 16px; }
+h3, h4, h5, h6 { font-size: 100%; }
+small { font-size: 12px; }
+
+/* 去除默认字体样式 */
+i { font-style: initial; }
+u { text-decoration: none; }
+h1, h2, h3, h4, h5, h6, b, strong { font-weight: normal; }
+
+/* 常用字体样式 */
+.i { font-style: italic; }
+.b { font-weight: bold; }
+ins, .ins { text-decoration: underline; }
+del, .del { text-decoration: line-through; }
+*/
+
+/* 重置列表元素 */
+ul, ol { list-style: none; }
+
+/* 重置文本格式元素 */
+a { text-decoration: none; outline: none; color: inherit; }
+
+/* 重置表单元素 */
+button, input, textarea, select { outline: none; font-size: 100%; }
+legend { color: #000; } /* for ie6 */
+fieldset, img { border: none; } /* img 搭车：让链接里的 img 无边框 */
+
+/* 重置表格元素 */
+table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* 重置 hr */
+hr {
+    border-width: 1px 0 0;
+    border-style: solid;
+    border-color: #eee;
+}
+
+/* 按钮、链接鼠标移入样式 */
+button, a { cursor: pointer; }
+.a { cursor: pointer; }
+
+/* 限制img标签的大小 */
+img { max-width: 100%; max-height: 100%; }
