@@ -5,6 +5,7 @@ require.config({
 		text: 'lib/require.text',
 		css: 'lib/require.css',
 		jquery: 'lib/jquery',
+		tools: 'toolkit.tools',
 		grid: 'toolkit.grid'
 	},
 	config: {

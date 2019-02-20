@@ -1,45 +1,46 @@
 /**
- * Version: 2.0
+ * Version: 2.0.0
  * Author: Woody
  * Description: 功能大纲：
- * 				1.创建时可省略new操作符 √
- * 				2.重构表格布局逻辑 √
- * 				3.优化滚动联动交互 √
- * 				4.优化自适应方法 √
- * 				5.重构表格行操作方法 √
- * 					└ 插入行  insertRows √
- * 					└ 获取所有行  getAllRows √
- * 					  根据序号获得行  getRows √
- * 					  获得当前页选中行  getCrtRows √
- * 					  通过条件获取行  getRowsBy √
- * 					  	└ 移动至指定位置  moveTo √
- * 						└ 删除  remove √
- * 						└ 获取序号  getIndex √
- * 						└ 获取数据  getData √
- * 						└ 选中  select √
- * 						└ 取消选中  unselect √
- * 						└ 刷新数据  update √
- * 						└ 遍历  each √
+ * 				创建时可省略new操作符 √
+ * 				重构表格布局逻辑 √
+ * 				优化滚动联动交互 √
+ * 				优化自适应方法 √
+ * 				重构表格行操作方法 √
+ * 					├ 插入行  insertRows √
+ * 					└ ┐ 获取所有行  getAllRows √
+ * 					  │ 根据序号获得行  getRows √
+ * 					  │ 获得当前页选中行  getCrtRows √
+ * 					  └ 通过条件获取行  getRowsBy √
+ * 					  	├ 移动至指定位置  moveTo √
+ * 						├ 删除  remove √
+ * 						├ 获取序号  getIndex √
+ * 						├ 获取数据  getData √
+ * 						├ 选中  select √
+ * 						├ 取消选中  unselect √
+ * 						├ 刷新数据  update √
+ * 						├ 遍历  each √
  * 						└ 获取指定序号行  eq √
- * 				6.优化排序方法  [3]
- * 				7.优化汇总行  [2]
- * 				8.优化分页栏，支持两种模式  [2]
- * 				9.增加系统列概念（隐藏列，序号列，复选列，分级列等） [3]
- * 				10.支持多级子行  [4]
- * 				11.列宽拖拽调整  [5]
- * 				12.整列隐藏  [5]
- * 				13.整列拖拽排序  [5]
- * 				14.保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
- * 					└ 获取已选数据  getCrtData  [1]
+ * 				优化排序方法  [3]
+ * 				优化汇总行  [2]
+ * 				优化分页栏，支持两种模式  [2]
+ * 				增加系统列概念（隐藏列，序号列，复选列，分级列等） [3]
+ * 				支持多级子行  [4]
+ * 				列宽拖拽调整  [5]
+ * 				整列隐藏  [5]
+ * 				整列拖拽排序  [5]
+ * 				保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
+ * 					├ 获取已选数据  getCrtData  [1]
  * 					└ 清除已选数据  cleanCrtData  [1]
- *              15.表格搜索功能  [3]
+ *              表格搜索功能  [3]
  * Date: 2018-11-01
 **/
 define('grid', [
 	'jquery',
-	'css!../style/toolkit.grid.css',
+	'tools',
 	'css!../style/toolkit.grid.css'
-], function($) {
+], function($, tools) {
+	window.tool = tools;
 	var _countBar = {}; //是否有汇总
 
 	var _countData = {}; //表格汇总数据
@@ -661,7 +662,7 @@ define('grid', [
 					multiple: false,
 					checkAll: false,
 					callType: 0  // 0: 通过点击复选框或点击行；1：通过点击复选框；2：通过点击行；
-				}, is(opt.check) == 'object' ? opt.check : {});
+				}, tools.typeof(opt.check) == 'object' ? opt.check : {});
 			}
 
 			this.opt = opt;
@@ -844,8 +845,8 @@ define('grid', [
 		
 		// 根据序号获取行
 		getRows: function(index) {
-			if (is(index) == 'number' || is(index) == 'string') index = [index];
-			else if(is(index) != 'array') return;
+			if (tools.typeof(index) == 'number' || tools.typeof(index) == 'string') index = [index];
+			else if(tools.typeof(index) != 'array') return;
 
 			index = index.sort();
 
@@ -881,7 +882,7 @@ define('grid', [
 				var state = true;
 				for (var j in o) {
 					if (_sysColName.indexOf(j) == -1 && this.data[i][j] !== undefined) {
-						if (is(o[j]) == 'array') {
+						if (tools.typeof(o[j]) == 'array') {
 							if (o[j].indexOf(this.data[i][j]) == -1) {
 								state = false;
 								break;
