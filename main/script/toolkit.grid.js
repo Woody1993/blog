@@ -35,31 +35,30 @@
  *              15.表格搜索功能  [3]
  * Date: 2018-11-01
 **/
-
-;(function(w, d, $) {
+define('grid', [
+	'jquery',
+	'css!../style/toolkit.grid.css',
+	'css!../style/toolkit.grid.css'
+], function($) {
 	var _countBar = {}; //是否有汇总
 
 	var _countData = {}; //表格汇总数据
 
-	_scrollSize = 0; //浏览器滚动条大小
+	_scrollSize = (function() { //浏览器滚动条大小
+		var noScroll, scroll, oDiv = document.createElement('div');
+		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
+		noScroll = document.body.appendChild(oDiv).clientWidth;
+		oDiv.style.overflowY = 'scroll';
+		scroll = oDiv.clientWidth;
+		document.body.removeChild(oDiv);
+		return (noScroll - scroll);
+	})();
 
 	var _sortBy = {}; //表格目前的排序
 
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
 	var _sysColName = ['__$tr', '__index', '__selected']; //系统列集合
-
-	$(function() {
-		_scrollSize = (function() {
-			var noScroll, scroll, oDiv = d.createElement('div');
-			oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
-			noScroll = d.body.appendChild(oDiv).clientWidth;
-			oDiv.style.overflowY = 'scroll';
-			scroll = oDiv.clientWidth;
-			d.body.removeChild(oDiv);
-			return (noScroll - scroll);
-		})();
-	});
 
 	var getData = function(grid, page, fun) {
 		var param = {};
@@ -576,8 +575,8 @@
 	var frozeShadow = function () {
 		var sl = this.root.body.main.dom.scrollLeft();
 		var maxSl = this.root.body.main.tb.dom.width()
-				  - this.root.body.main.dom.width()
-				  + this.sw;
+					- this.root.body.main.dom.width()
+					+ this.sw;
 
 		if (sl > 0 && !this.root.dom.hasClass('froze-left-shadow')) {
 			this.root.dom.addClass('froze-left-shadow');
@@ -915,8 +914,6 @@
 
 	main.fn.init.prototype = main.fn;
 
-	w.dGrid = w.d = main;
-
 	var rowsDataClean = function(data) {
 		var json = {};
 		for (var i in data) {
@@ -1050,4 +1047,5 @@
 		}
 	};
 
-})(window, document, window.jQuery);
+	return main;
+});

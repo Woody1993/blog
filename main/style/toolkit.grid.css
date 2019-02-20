@@ -1,3 +1,75 @@
+/* font */
+@font-face {font-family: 'dfont';
+    src: url('../font/iconfont.eot?t=1473849124');
+    src: url('../font/iconfont.eot?t=1473849124#iefix') format('embedded-opentype'),
+         url('../font/iconfont.woff?t=1473849124') format('woff'),
+         url('../font/iconfont.tdf?t=1473849124') format('truetype'),
+         url('../font/iconfont.svg?t=1473849124#iconfont') format('svg');
+}
+.df {
+    display: inline-block;
+    font: normal normal normal 14px/1 'dfont';
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.df-fw {
+    width: 1.28571429em;
+    text-align: center;
+}
+.df-spin {
+    -webkit-animation: df-spin 2s infinite linear;
+    animation: df-spin 2s infinite linear;
+}
+@-webkit-keyframes df-spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg)
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg)
+    }
+}
+@keyframes df-spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg)
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg)
+    }
+}
+
+.df-sort:before {
+    content: '\e75b';
+}
+.df-sort-asc:before {
+    content: '\e75d';
+}
+.df-sort-desc:before {
+    content: '\e75c';
+}
+
+.df-tri-up:before {
+    content: '\e803';
+}
+.df-tri-down:before {
+    content: '\e802';
+}
+.df-tri-left:before {
+    content: '\e800';
+}
+.df-tri-right:before {
+    content: '\e801';
+}
+.df-refresh:before {
+    content: '\e7ff';
+}
+/* end font */
+
 .d-grid, .d-grid * {
     margin: 0;
     padding: 0;
@@ -171,7 +243,7 @@
 }
 .froze-left-shadow .d-froze-left,
 .froze-right-shadow .d-froze-right {
-    box-shadow: 0 0 10px 0 rgba(0,0,0,.25);
+    box-shadow: 0 0 10px 0 rgba(0,0,0,.12);
 }
 
 

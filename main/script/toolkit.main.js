@@ -1,3 +1,9 @@
+require([
+	'jquery',
+	'css!../style/reset.css'
+], function($) {
+});
+
 /**
  * 获取浏览器类型和版本
  * @returns {string}

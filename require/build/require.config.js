@@ -1,1 +1,0 @@
-require.config({baseUrl:"src/script/",urlArgs:"t="+(new Date).getTime(),paths:{jQuery:"jQuery",app:"app",text:"require.text",css:"require.css"},shim:{jQuery:{exports:"jQuery"}},config:{text:{onXhr:function(e,t){e.setRequestHeader("X-Requested-With","XMLHttpRequest")}}}});

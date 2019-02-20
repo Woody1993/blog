@@ -1,1 +1,0 @@
-define(["jQuery"],function(n){return{showJq:function(){return n}}});

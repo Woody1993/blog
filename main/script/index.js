@@ -1,8 +1,10 @@
-$(function() {
-	grid = dGrid({
+require([
+	'grid'
+], function(grid) {
+	tb = grid({
 		box: '#box',
 
-		url: 'json/data.json',
+		url: 'data/toolkit.grid.json',
 		dataType: 'text',
 		dataFormatter: function(data) {
 			return data.data;
@@ -207,7 +209,7 @@ $(function() {
 	});
 
 	$(window).resize(function() {
-		grid.resize();
+		tb.resize();
 	});
 
 	var newRowsIndex = 0;
@@ -237,6 +239,6 @@ $(function() {
 			});
 		}
 
-		grid.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
+		tb.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
 	});
-})
+});
