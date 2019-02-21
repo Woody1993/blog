@@ -5,40 +5,162 @@
 	<title>dToolkit</title>
 	<script src="script/lib/require.js"></script>
 	<script src="script/require.config.js"></script>
-	<script src="script/toolkit.main.js"></script>
-	<script src="script/index.js"></script>
-</head>
-<body>
 	<style>
-		.box {
-			height: 600px;
-			margin: 20px;
+		html, body {
+			height: 100%;
+		}
+		.body {
+			display: flex;
+			position: relative;
+			width: 1200px;
+			height: 100%;;
+			margin: 0 auto;
+			transition: width .3s ease;
+		}
+		.body.full {
+			width: 100%;
 		}
 
-		.op {
-			margin: 0 20px 20px;
-			overflow: hidden;
+		/* nav */
+		.nav {
+			display: flex;
+			flex-direction: column;
+			flex-basis: 240px;
+		}
+		.nav dt {
+			display: flex;
+			align-items: center;
+			flex-basis: 100px;
+			padding-left: 20px;
+		}
+		.nav dt .logo {
+			flex-basis: 80px;
+			height: 80px;
+		}
+		.nav dt h1 {
+			height: 26px;
+			text-indent: 4px;
+		}
+		.nav dt img {
+			max-width: 100%;
+			max-height: 100%;
 		}
 
-		.op > div {
-			float: left;
-			width: 50%;
+		.nav dd {
+			flex-grow: 1;
+			overflow: auto;
+		}
+		.nav dd ul {
+			padding: 20px 0;
+		}
+		.nav dd li a {
+			display: block;
 			height: 40px;
 			line-height: 40px;
+			font-size: 14px;
+			color: #444;
+			text-indent: 20px;
+			transition: color .15s ease;
+		}
+		.nav dd li:nth-child(n+2) {
+			border-top: 1px solid #efefef;
+		}
+		.nav dd li:hover a, .nav dd li.z-crt a {
+			color: #409eff;
+		}
+		.nav dd li:active a {
+			color: #444;
+		}
+		/* end nav */
+
+		.main {
+			flex-grow: 1;
+		}
+		.main iframe {
+			display: block;
+			width: 100%;
+			height: 100%;
+			border: none;
+		}
+
+		.full-btn {
+			position: absolute;
+			right: 20px;
+			bottom: 20px;
+			width: 36px;
+			height: 36px;
+			border-radius: 36px;
+			background: rgba(0,0,0,.4);
+			cursor: pointer;
+		}
+		.full-btn:before, .full-btn:after {
+			content: '';
+			display: block;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			background: #fff;
+			transition: all .3s ease;
+		}
+		.full-btn:before {
+			width: 4px;
+			height: 20px;
+			border-radius: 2px;
+			margin-left: -2px;
+			margin-top: -10px;
+		}
+		.full-btn.z-open:before {
+			transform: rotate(90deg);
+		}
+		.full-btn:after {
+			width: 20px;
+			height: 4px;
+			border-radius: 2px;
+			margin-left: -10px;
+			margin-top: -2px;
 		}
 	</style>
+</head>
+<body>
+	<div class="body">
+		<dl class="nav">
+			<dt>
+				<div class="logo"><img src="../logo.png" alt=""></div>
+				<h1><img src="../title.png" alt=""></h1>
+			</dt>
+			<dd>
+				<ul id="nav">
+					<li><a href="demo/grid.html">表格</a></li>
+				</ul>
+			</dd>
+		</dl>
+		<div class="main"><iframe></iframe></div>
 
-	<div id="box" class="box"></div>
-
-	<div class="op">
-		<div>
-			<span>插入</span>
-			<input style="width: 30px; text-align: center;" id="insertCount" type="text" value="1">
-			<span>条数据到第</span>
-			<input style="width: 30px; text-align: center;" id="insertIndex" type="text" value="0">
-			<span>行</span>
-			<button id="insert">确定</button>
-		</div>
+		<div class="full-btn" id="full"></div>
 	</div>
+
+	<script>
+		require(['jquery'], function($) {
+			$('#nav a').click(function() {
+				if ($(this).hasClass('z-crt')) return false;
+				$(this).parent().addClass('z-crt').siblings('.z-crt').removeClass('z-crt');
+				$('iframe').prop('src', $(this).prop('href'));
+				return false;
+			});
+
+			$('#full').click(function() {
+				if ($(this).hasClass('z-open')) {
+					full(false);
+				} else {
+					full(true);
+				}
+			});
+
+			function full(s) {
+				if (s) $('#full').addClass('z-open').parent().addClass('full');
+				else $('#full').removeClass('z-open').parent().removeClass('full');
+			}
+		});
+	</script>
 </body>
 </html>

@@ -21,7 +21,7 @@
  *				throttle - 函数节流
  */
 
-define(function() {
+define('tools', function() {
 	var tools = {
 		// 系统类型
 		os: (function() {

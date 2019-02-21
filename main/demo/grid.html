@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>dToolkit</title>
+	<script src="../script/lib/require.js"></script>
+	<script src="../script/require.config.js"></script>
+	<script src="grid.js"></script>
+</head>
+<body>
+	<style>
+		.box {
+			height: 600px;
+			padding: 20px;
+		}
+
+		.op {
+			margin: 0 20px 20px;
+			overflow: hidden;
+		}
+
+		.op > div {
+			float: left;
+			width: 50%;
+			height: 40px;
+			line-height: 40px;
+		}
+	</style>
+
+	<div id="box" class="box"></div>
+
+	<div class="op">
+		<div>
+			<span>插入</span>
+			<input style="width: 30px; text-align: center;" id="insertCount" type="text" value="1">
+			<span>条数据到第</span>
+			<input style="width: 30px; text-align: center;" id="insertIndex" type="text" value="0">
+			<span>行</span>
+			<button id="insert">确定</button>
+		</div>
+	</div>
+</body>
+</html>

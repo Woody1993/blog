@@ -1,5 +1,5 @@
 require.config({
-	baseUrl: 'script',
+	baseUrl: '/main/script',
 	urlArgs: 'v=1.0.0',
 	paths: {
 		text: 'lib/require.text',
@@ -15,5 +15,9 @@ require.config({
 				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 			}
 		}
-	}
+	},
+	deps: [
+		'css!../style/reset.css',
+		'jquery'
+	]
 });

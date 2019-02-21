@@ -40,7 +40,6 @@ define('grid', [
 	'tools',
 	'css!../style/toolkit.grid.css'
 ], function($, tools) {
-	window.tool = tools;
 	var _countBar = {}; //是否有汇总
 
 	var _countData = {}; //表格汇总数据
