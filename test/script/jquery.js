@@ -3567,7 +3567,5 @@
 				}, n, o ? i : t, o, null)
 			}
 		})
-	}), e.jQuery = e.$ = v, typeof define == "function" && define.amd && define.amd.jQuery && define("jquery", [], function() {
-		return v
-	})
+	}), e.jQuery = e.$ = v;
 })(window);
