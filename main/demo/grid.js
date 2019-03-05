@@ -1,6 +1,7 @@
 require([
+	'jquery',
 	'grid'
-], function(grid) {
+], function($, grid) {
 	tb = grid({
 		box: '#box',
 

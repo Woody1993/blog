@@ -35,7 +35,7 @@
  *              表格搜索功能  [3]
  * Date: 2018-11-01
 **/
-define('grid', [
+define([
 	'jquery',
 	'tools',
 	'css!../style/toolkit.grid.css'
