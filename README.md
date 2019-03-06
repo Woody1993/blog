@@ -117,7 +117,7 @@ require('module', function(obj) {
 我们可以通过使用css!前缀加载所依赖样式文件：
 ```
 require([
-  'css!style/reset.css'  // 这里同样可以省略.css后缀
+    'css!style/reset.css'  // 这里同样可以省略.css后缀
 ], function() {
 
 });
