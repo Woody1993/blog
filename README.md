@@ -118,9 +118,7 @@ require('module', function(obj) {
 ```
 require([
   'css!style/reset.css'  // 这里同样可以省略.css后缀
-], function($) {
-
-    // 在这里就可以使用jquery对象当中的方法了
+], function() {
 
 });
 ```
