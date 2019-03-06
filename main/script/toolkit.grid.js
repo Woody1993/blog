@@ -38,7 +38,7 @@
 define([
 	'jquery',
 	'tools',
-	'css!../style/toolkit.grid.css'
+	'grid_css'
 ], function($, tools) {
 	var _countBar = {}; //是否有汇总
 
@@ -572,7 +572,7 @@ define([
 		}
 	};
 
-	var frozeShadow = function () {
+	var frozeShadow = tools.throttle(function () {
 		var sl = this.root.body.main.dom.scrollLeft();
 		var maxSl = this.root.body.main.tb.dom.width()
 					- this.root.body.main.dom.width()
@@ -589,7 +589,7 @@ define([
 		} else if (sl == maxSl && this.root.dom.hasClass('froze-right-shadow')) {
 			this.root.dom.removeClass('froze-right-shadow');
 		}
-	}
+	}, 100);
 
 	var bindEvent = function(grid) {
 		var $box = grid.box;
@@ -752,7 +752,7 @@ define([
 		resize: function() {
 			var opt = this.opt;
 			var $box = this.box;
-			var width = this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 0) / 100 : width;
+			var width = typeof this.width == 'function' ? this.width() : this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 100) / 100 : width;
 			var height =  typeof this.height == 'function' ? this.height() : this.height;
 
 			this.root.dom.width(width - 2);
@@ -788,7 +788,6 @@ define([
 			this.root.body.left.dom.css('bottom', this.sh);
 			this.root.body.right.dom.css('bottom', this.sh);
 			this.root.body.right.dom.css('right', this.sw);
-
 			frozeShadow.call(this);
 			return this;
 		},

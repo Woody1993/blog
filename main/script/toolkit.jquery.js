@@ -3567,7 +3567,7 @@
 				}, n, o ? i : t, o, null)
 			}
 		})
-	}), e.jQuery = e.$ = v, define(function() {
+	}), define(function() {
 		return v
 	})
 })(window);

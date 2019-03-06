@@ -38,10 +38,11 @@
 	}();
 
 	var paths = {
-		reset: "css!../style/reset.css",
-		jquery: "toolkit.jquery",
-		grid: "toolkit.grid",
-		tools: "toolkit.tools"
+		reset: "css!style/reset",
+		jquery: "script/toolkit.jquery",
+		grid: "script/toolkit.grid",
+		grid_css: "css!style/toolkit.grid",
+		tools: "script/toolkit.tools"
 	};
 
 	var absPath = function(u) {
@@ -52,7 +53,12 @@
 		return (absPath(u) ? "" : baseUrl) + u + (type ? (type == 'js' ? (/\.js$/.test(u) ? "" : ".js") : (/\.css$/.test(u) ? "" : ".css")) : '');
 	}
 
-	window.require = function(modules, callback, exports) {
+	w.require = function(modules, callback, exports) {
+		typeof modules === 'function' && (
+			callback = modules,
+			modules = []
+		);
+
 		var that = this,
 			modules = typeof modules === 'string' ? [modules] : modules,
 			module = modules[0],
@@ -122,7 +128,7 @@
 		}
 	};
 
-	window.define = function(deps, factory) {
+	w.define = function(deps, factory) {
 		var that = this,
 			module = crtDom().getAttribute("module");
 		typeof deps === 'function' && (
