@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>dToolkit</title>
-	<script src="d.toolkit.js"></script>
+	<script src="src/d.toolkit.js"></script>
 	<style>
 		html, body {
 			height: 100%;
@@ -119,23 +119,33 @@
 			</dt>
 			<dd>
 				<ul id="nav">
-					<li><a href="demo/grid.html">表格</a></li>
+					<li><a href="#/demo/grid.html">表格</a></li>
 				</ul>
 			</dd>
 		</dl>
-		<div class="main"><iframe></iframe></div>
+		<div class="main"></div>
 
 		<div class="full-btn" id="full"></div>
 	</div>
 
 	<script>
 		require(['jquery'], function($) {
+			function jump() {
+				$('.main').html($('<iframe>').prop('src', location.hash.slice(1) ?
+					location.origin + location.pathname + '/' + location.hash.slice(1) :
+					''
+				));
+			};
+
+			jump();
+
 			$('#nav a').click(function() {
-				if ($(this).hasClass('z-crt')) return false;
-				$(this).parent().addClass('z-crt').siblings('.z-crt').removeClass('z-crt');
-				$('iframe').prop('src', $(this).prop('href'));
-				return false;
+				setTimeout(jump);
 			});
+
+			window.addEventListener('popstate', function(e) {
+				setTimeout(jump);
+			}, false);
 
 			$('#full').click(function() {
 				if ($(this).hasClass('z-open')) {

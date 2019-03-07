@@ -5,7 +5,7 @@ require([
 	tb = grid({
 		box: '#box',
 
-		url: '../data/toolkit.grid.json',
+		url: 'grid.json',
 		dataType: 'text',
 		dataFormatter: function(data) {
 			return data.data;
