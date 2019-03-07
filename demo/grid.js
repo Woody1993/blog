@@ -5,7 +5,7 @@ require([
 	tb = grid({
 		box: '#box',
 
-		url: 'grid.txt',
+		url: 'grid.data.html',
 		dataType: 'text',
 		dataFormatter: function(data) {
 			return data.data;
