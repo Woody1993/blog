@@ -4,13 +4,10 @@
 
 ## 文件目录
 ```
-├ data  // 模拟json数据文件
-├ demo  // 各模块组件预览页面
 ├ font  // 字体图标文件
 ├ script  // 各模块组件
 ├ style  // 样式文件
-├ d.toolkit.js  // 基础核心代码
-└ index.html  // 预览主页面
+└ d.toolkit.js  // 基础核心代码
 ```
 
 ## 开始使用
