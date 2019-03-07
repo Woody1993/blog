@@ -115,7 +115,7 @@
 	<div class="body">
 		<dl class="nav">
 			<dt>
-				<img src="../logo.jpg" alt="">
+				<a href="/"><img src="logo.jpg" alt=""></a>
 			</dt>
 			<dd>
 				<ul id="nav">
@@ -131,8 +131,14 @@
 	<script>
 		require(['jquery'], function($) {
 			function jump() {
-				$('.main').html($('<iframe>').prop('src', location.hash.slice(1) ?
-					location.origin + location.pathname + '/' + location.hash.slice(1) :
+				var origin = location.origin,
+					pathname = location.pathname,
+					hash = location.hash.slice(1);
+				pathname = pathname.split('/');
+				/^.+\.html/.test(pathname[pathname.length-1]) && pathname.pop();
+				pathname = pathname.join('/');
+				$('.main').html($('<iframe>').prop('src', hash ?
+					origin + pathname + '/' + hash :
 					''
 				));
 			};
