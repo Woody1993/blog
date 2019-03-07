@@ -22,7 +22,7 @@
  * 						├ 遍历  each √
  * 						└ 获取指定序号行  eq √
  * 				优化排序方法  [3]
- * 				优化汇总行  [2]
+ * 				优化汇总行 √
  * 				优化分页栏，支持两种模式  [2]
  * 				增加系统列概念（隐藏列，序号列，复选列，分级列等） [3]
  * 				支持多级子行  [4]
@@ -40,10 +40,6 @@ define([
 	'tools',
 	'grid_css'
 ], function($, tools) {
-	var _countBar = {}; //是否有汇总
-
-	var _countData = {}; //表格汇总数据
-
 	_scrollSize = (function() { //浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');
 		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
@@ -84,7 +80,7 @@ define([
 					msg = (new Function("return " + msg))();
 				}
 				if (opt.countDataFormatter) {
-					_countData[grid.id] = opt.countDataFormatter(msg)
+					grid.countData = opt.countDataFormatter(msg)
 				}
 				grid.rowsCount = opt.totalDataFormatter(msg);
 				data = opt.dataFormatter(msg);
@@ -167,27 +163,28 @@ define([
 						editable: false,
 						iptClassName: '',
 						overflow: true,
-						dataFormatter: function(value, row) {
+						dataFormatter: function(value) {
 							return value
 						},
-						titleFormatter: function(value, row) {
+						titleFormatter: function(value) {
 							return value
 						},
-						count: false,
-						countFormatter: function(count) {
-							return count
-						}
+						count: false
 					}, cols[i]);
 
 					if (!cols[i].space) {
 						if (frozen) cols[i].frozen = frozen;
-						if (cols[i].count == true) {
-							_countBar[grid.id] = true;
-							cols[i].count = function(value, row) {
-								return parseFloat(value);
-							}
-						} else if (typeof cols[i].count == 'function') {
-							_countBar[grid.id] = true
+						if (cols[i].count) {
+							grid.countBar = true;
+							cols[i].count = $.extend({
+								mode: 'number',  // number || type
+								itemFormatter: function(value) {
+									return value;
+								},
+								totalFormatter: function(value) {
+									return value;
+								}
+							}, tools.typeof(cols[i].count) == 'object' ? cols[i].count : {});
 						}
 						var width = (parseInt(cols[i].width) || 100) + 14;
 						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += width + 1;
@@ -237,7 +234,7 @@ define([
 			dom: $('<div class="d-main"></div>').appendTo(grid.root.body.dom)
 		};
 
-		if (_countBar[grid.id]) {
+		if (grid.countBar) {
 			grid.root.foot = {
 				dom: $('<div class="d-grid-foot"></div>').appendTo(grid.root.dom)
 			};
@@ -398,10 +395,10 @@ define([
 			$tr.append($td);
 
 			function setVal(v) {
-				if (col.titleFormatter) {
-					var title = col.titleFormatter(v, data);
-					if (typeof title != 'string') title = '';
-					$td.attr('title', title.replace(/<\/?[^>]*>/g, ''));
+				if (v !== undefined && tools.typeof(col.titleFormatter) == 'function') {
+					var title = col.titleFormatter(v);
+					tools.typeof(title) == 'string' && (title = title.replace(/<\/?[^>]*>/g, ''));
+					$td.attr('title', title);
 				}
 
 				if (col.editable) {
@@ -462,24 +459,35 @@ define([
 		return $tr;
 	};
 
-	var createCount = function(id, cols, data) {
+	var createCount = function(cols, data) {
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
-			var name = col.name;
-			var count = '';
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px">');
-			if (typeof col.count == 'function') {
-				count = (function(name) {
-					var count = 0;
-					for (var j in data) {
-						count += col.count(col.dataFormatter(data[j][name], data[j]), data[j], j)
-					}
-					return count
-				})(name)
+			if (col.count) {
+				var count = (function(name) {
+						switch (col.count.mode) {
+						case 'number':
+							var count = 0;
+							for (var j in data) {
+								count += col.count.itemFormatter(data[j][name]);
+							}
+							return count;
+						case 'type':
+							var count = {};
+							for (var j in data) {
+								var val = col.count.itemFormatter(data[j][name]);
+								count[val] = count[val] || 0;
+								count[val]++;
+							}
+							return count;
+						}
+					})(col.name);
+				var html = col.count.totalFormatter(count, this.countData[col.name]);
+				tools.typeof(html) == 'array' && (html = html.join('</br>'));
+				$td.find('div').html(html);
 			}
-			$td.find('div').html(col.countFormatter(count, _countData[id]));
 			$tr.append($td)
-		};
+		}.bind(this);
 		for (var i = 0, len = cols.length; i < len; i++) {
 			insertTd(cols[i])
 		}
@@ -693,13 +701,13 @@ define([
 
 			var create = function (data) {
 				me.pushRows(data);
-				if (_countBar[me.id]) {
-	
-					this.root.foot.main.dom.html(createCount(me.id, this.colsModel.main, data));
-					this.root.foot.left.dom.html(createCount(me.id, this.colsModel.left, data));
-					this.root.foot.right.dom.html(createCount(me.id, this.colsModel.right, data));
+				if (me.countBar) {
+					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data));
+					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data));
+					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data));
 					initRowHeight.call(me)
 				};
+
 				if (opt.pageBar) {
 					this.root.page.dom.html(createPage(page, opt.pageSize, me.rowsCount));
 					me.pageCount = this.root.page.dom.find('input').attr('maxnum');
@@ -752,8 +760,8 @@ define([
 		resize: function() {
 			var opt = this.opt;
 			var $box = this.box;
-			var width = typeof this.width == 'function' ? this.width() : this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 100) / 100 : width;
-			var height =  typeof this.height == 'function' ? this.height() : this.height;
+			var width = typeof this.width == 'function' ? this.width() : this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 100) / 100 : parseInt(this.width);
+			var height =  typeof this.height == 'function' ? this.height() : parseInt(this.height);
 
 			this.root.dom.width(width - 2);
 
@@ -766,7 +774,7 @@ define([
 					this.sh = _scrollSize;
 				}
 			} else {
-				var h = height - this.root.head.dom.height() - 2 - (_countBar[this.id] ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
+				var h = height - this.root.head.dom.height() - 2 - (this.countBar ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
 

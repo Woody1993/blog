@@ -5,7 +5,7 @@ require([
 	tb = grid({
 		box: '#box',
 
-		url: 'grid.data.html',
+		url: 'grid.json',
 		dataType: 'text',
 		dataFormatter: function(data) {
 			return data.data;
@@ -49,9 +49,11 @@ require([
 				dataFormatter: function(index) {
 					return '#'+index;
 				},
-				count: true,
-				countFormatter: function(value, count) {
-					return '本页合计<br />总合计';
+				titleFormatter: false,
+				count: {
+					totalFormatter: function() {
+						return '本页合计';
+					}
 				}
 			}, {
 				title: '状态',
@@ -65,11 +67,7 @@ require([
 				title: '订单号',
 				frozen: 'left',
 				name: 'orderNum',
-				width: 90,
-				dataFormatter: function(value, row) {
-					return value;
-				},
-				titleFormatter: false
+				width: 90
 			}, {
 				title: '买家信息',
 				subCol: [
@@ -79,7 +77,8 @@ require([
 						width: 60,
 						dataFormatter: function(value) {
 							return '<div style="width:70px;height:70px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'" /></div>';
-						}
+						},
+						titleFormatter: false
 					}, {
 						title: '用户名',
 						name: 'username',
@@ -125,7 +124,8 @@ require([
 			}, {
 				title: '货品数量',
 				name: 'productCount',
-				width: 60
+				width: 60,
+				count: true
 			}, {
 				title: '订单金额',
 				subCol: [
@@ -135,6 +135,15 @@ require([
 						width: 60,
 						dataFormatter: function(value) {
 							return value.toFixed(2);
+						},
+						count: {
+							mode: 'number',  // number || type
+							itemFormatter: function(value) {
+								return parseFloat(value) || 0;
+							},
+							totalFormatter: function(value) {
+								return value.toFixed(2);
+							}
 						}
 					}, {
 						title: '运费',
@@ -142,19 +151,49 @@ require([
 						width: 60,
 						dataFormatter: function(value) {
 							return value.toFixed(2);
+						},
+						count: {
+							mode: 'number',  // number || type
+							itemFormatter: function(value) {
+								return parseFloat(value) || 0;
+							},
+							totalFormatter: function(value) {
+								return value.toFixed(2);
+							}
 						}
 					}
 				]
 			}, {
 				title: '支付方式',
 				name: 'payType',
-				width: 60
+				width: 60,
+				count: {
+					mode: 'type',  // number || type
+					itemFormatter: function(value) {
+						return value == '支付宝' ? 'alipay' : 'wechat';
+					},
+					totalFormatter: function(value) {
+						return [
+							'支付宝:' + value.alipay,
+							'微信:' + value.wechat
+						];
+					}
+				}
 			}, {
 				title: '支付金额',
 				name: 'paySum',
 				width: 60,
 				dataFormatter: function(value) {
 					return value.toFixed(2);
+				},
+				count: {
+					mode: 'number',  // number || type
+					itemFormatter: function(value) {
+						return parseFloat(value) || 0;
+					},
+					totalFormatter: function(value) {
+						return value.toFixed(2);
+					}
 				}
 			}, {
 				title: '备注',

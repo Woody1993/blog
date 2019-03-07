@@ -42,7 +42,7 @@
 			overflow: auto;
 		}
 		.side .nav dl {
-			padding-top: 20px;
+			padding: 20px 0 0 10px;
 		}
 		.side .nav dt {
 			border-left: 5px solid #657b83;
@@ -130,7 +130,7 @@
 			</div>
 			<div class="nav">
 				<dl>
-					<dt>模块组件</dt>
+					<dt>组件</dt>
 					<dd>
 						<ul>
 							<li><a href="#/api/index.html?api=tools">工具方法</a></li>
@@ -139,7 +139,7 @@
 					</dd>
 				</dl>
 				<dl>
-					<dt>组件预览</dt>
+					<dt>预览</dt>
 					<dd>
 						<ul>
 							<li><a href="#/demo/grid.html">表格</a></li>
@@ -156,7 +156,7 @@
 	<script>
 		require(['jquery'], function($) {
 			function jump() {
-				var origin = location.origin,
+				var origin = location.origin == 'null' ? '' : location.origin,
 					pathname = location.pathname,
 					hash = location.hash.slice(1);
 				pathname = pathname.split('/');
