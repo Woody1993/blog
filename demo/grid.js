@@ -59,15 +59,16 @@ require([
 				title: '状态',
 				frozen: 'left',
 				name: 'status',
-				width: 60,
-				sortBy: 'both', //none || asc || desc || both
-				sortFrom: 'local', //ajax || local
-				sortModel: 'string' //number || string
+				width: 60
 			}, {
 				title: '订单号',
 				frozen: 'left',
 				name: 'orderNum',
-				width: 90
+				width: 90,
+				sort: {
+					type: 'desc,asc',
+					param: 'sortOrderNum'
+				}
 			}, {
 				title: '买家信息',
 				subCol: [

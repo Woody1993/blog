@@ -21,10 +21,15 @@
  * 						├ 刷新数据  update √
  * 						├ 遍历  each √
  * 						└ 获取指定序号行  eq √
- * 				优化排序方法  [3]
- * 				优化汇总行 √
- * 				优化分页栏，支持两种模式  [2]
- * 				增加系统列概念（隐藏列，序号列，复选列，分级列等） [3]
+ * 				优化排序及配置 √
+ * 				优化汇总行及配置 √
+ * 				优化分页栏，支持两种样式  [2]
+ * 				系统列
+ * 					├ 序号列 √
+ * 					├ 子表格列  [3]
+ * 					└ 多级列  [3]
+ * 				子表格（通过子表格列展开）  [3]
+ * 				多级表格（通过多级列展开）  [3]
  * 				支持多级子行  [4]
  * 				列宽拖拽调整  [5]
  * 				整列隐藏  [5]
@@ -50,8 +55,6 @@ define([
 		return (noScroll - scroll);
 	})();
 
-	var _sortBy = {}; //表格目前的排序
-
 	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
 
 	var _sysColName = ['__$tr', '__index', '__selected']; //系统列集合
@@ -59,14 +62,12 @@ define([
 	var getData = function(grid, page, fun) {
 		var param = {};
 		var opt = grid.opt;
-		var sortBy = _sortBy[grid.id];
-		var data;
 		page = page ? page : 1;
 		param = typeof opt.data == 'function' ? opt.data() : opt.data;
 		param.pageIndex = page;
 		param.pageSize = opt.pageSize;
-		if (sortBy) {
-			sortBy = sortBy.split(',');
+		if (grid.sortBy) {
+			var sortBy = grid.sortBy.split(',');
 			param.sort = sortBy[0];
 			param.sortBy = sortBy[1]
 		}
@@ -79,12 +80,9 @@ define([
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
-				if (opt.countDataFormatter) {
-					grid.countData = opt.countDataFormatter(msg)
-				}
+				grid.countData = opt.countDataFormatter(msg)
 				grid.rowsCount = opt.totalDataFormatter(msg);
-				data = opt.dataFormatter(msg);
-				fun(data);
+				fun(opt.dataFormatter(msg));
 			}
 		});
 	};
@@ -169,7 +167,8 @@ define([
 						titleFormatter: function(value) {
 							return value
 						},
-						count: false
+						count: false,
+						sort: false
 					}, cols[i]);
 
 					if (!cols[i].space) {
@@ -185,6 +184,12 @@ define([
 									return value;
 								}
 							}, tools.typeof(cols[i].count) == 'object' ? cols[i].count : {});
+						}
+						if (cols[i].sort) {
+							cols[i].sort = $.extend({
+								type: 'desc,asc',  // desc,asc || asc,desc || desc || asc
+								param: cols[i].name
+							}, tools.typeof(cols[i].sort) == 'object' ? cols[i].sort : {});
 						}
 						var width = (parseInt(cols[i].width) || 100) + 14;
 						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += width + 1;
@@ -255,7 +260,7 @@ define([
 			};
 		}
 
-		var $headObjs = createThead(grid.opt.colModel, true);
+		var $headObjs = createThead.call(grid, grid.opt.colModel, true);
 		grid.root.head.main.dom.append($headObjs[0]);
 		grid.root.head.left.dom.append($headObjs[1]);
 		grid.root.head.right.dom.append($headObjs[2]);
@@ -275,17 +280,35 @@ define([
 	};
 
 	var createThead = function(cols, n) {
+		var grid = this;
 		var $hds = [$('<thead>'), $('<thead>'), $('<thead>')];
 
 		//设置排序按钮
 		var setSort = function($th, col) {
-			if (col.sortBy == 'none') return $th;
-			$th.addClass('d-grid-sort-th').data({
-				sortType: col.sortBy == 'both' ? (col.sortInit == 'desc' ? 'desc,asc' : 'asc,desc') : col.sortBy,
-				sortParam: col.sortParam ? col.sortParam : col.name,
-				sortFrom: col.sortFrom,
-				sortModel: col.sortModel
-			}).append('<i class="df df-sort"></i><i class="df df-sort-desc"></i><i class="df df-sort-asc"></i>');
+			if (col.sort) {
+				$th.addClass('d-grid-sort-th').append('<i class="df df-sort"></i><i class="df df-sort-desc"></i><i class="df df-sort-asc"></i>').click(function() {
+					var sortType = col.sort.type.split(',');
+					var sortParam = col.sort.param;
+					if ($(this).hasClass('z-sort-desc')) {
+						if (sortType.indexOf('asc') > -1) {
+							$(grid.root.head.dom).find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
+							$(this).removeClass('z-sort-desc').addClass('z-sort-asc');
+							grid.sortBy = sortParam + ',asc'
+						}
+					} else if ($(this).hasClass('z-sort-asc')) {
+						if (sortType.indexOf('desc') > -1) {
+							$(grid.root.head.dom).find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
+							$(this).removeClass('z-sort-asc').addClass('z-sort-desc');
+							grid.sortBy = sortParam + ',desc'
+						}
+					} else {
+						$(grid.root.head.dom).find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
+						$(this).addClass('z-sort-' + sortType[0]);
+						grid.sortBy = sortParam + ',' + sortType[0]
+					}
+					grid.update(1)
+				});
+			}
 			return $th
 		};
 
@@ -337,7 +360,8 @@ define([
 				} else {
 					var rowspan = maxDepth - cols[i].depth + 1;
 					var $th = $('<th colspan="1" rowspan="' + (maxDepth - cols[i].depth + 1) + '"><div class="th" style="width:' + cols[i].width + 'px;height:' + (rowspan * 35 + rowspan - 1) + 'px;line-height:' + (rowspan * 35 + rowspan - 1) + 'px;text-align:' + cols[i].align + ';"></div></th>');
-					setSort($th.find('div').html(cols[i].title), cols[i])
+					$th.find('div').html(cols[i].title);
+					cols[i].sort && setSort($th.find('div'), cols[i])
 				};
 
 				var frozen = cols[i].frozen;
@@ -608,29 +632,6 @@ define([
 				grid.getAllRows().unselect();
 			}
 		});
-
-		$box.find('.d-grid-sort-th').click(function() {
-			var sortType = $(this).data('sortType').split(',');
-			var sortParam = $(this).data('sortParam');
-			if ($(this).hasClass('z-sort-desc')) {
-				if (sortType.indexOf('asc') > -1) {
-					$box.find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
-					$(this).removeClass('z-sort-desc').addClass('z-sort-asc');
-					_sortBy[grid.id] = sortParam + ',asc'
-				}
-			} else if ($(this).hasClass('z-sort-asc')) {
-				if (sortType.indexOf('desc') > -1) {
-					$box.find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
-					$(this).removeClass('z-sort-asc').addClass('z-sort-desc');
-					_sortBy[grid.id] = sortParam + ',desc'
-				}
-			} else {
-				$box.find('.d-grid-sort-th').removeClass('z-sort-desc z-sort-asc');
-				$(this).addClass('z-sort-' + sortType[0]);
-				_sortBy[grid.id] = sortParam + ',' + sortType[0]
-			}
-			grid.update(1)
-		});
 	};
 	
 	var main = function(opt) {
@@ -648,11 +649,13 @@ define([
 				pageSize: 20,
 				dataType: 'json',
 				dataFormatter: function(data) {
-					return data.data
+					return data.data;
 				},
-				countDataFormatter: false,
+				countDataFormatter: function(data) {
+					return data.count;
+				},
 				totalDataFormatter: function(data) {
-					return data.total
+					return data.total;
 				},
 				width: '100%',
 				height: 'auto',
