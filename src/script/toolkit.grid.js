@@ -19,6 +19,8 @@
  * 						├ 选中  select √
  * 						├ 取消选中  unselect √
  * 						├ 刷新数据  update √
+ * 						├ 隐藏  hide √
+ * 						├ 显示  show √
  * 						├ 遍历  each √
  * 						└ 获取指定序号行  eq √
  * 				优化排序及配置 √
@@ -55,9 +57,9 @@ define([
 		return (noScroll - scroll);
 	})();
 
-	var _eventType = ['click', 'focus', 'blur', 'change']; //支持的文本框事件
+	var _eventType = ['click', 'focus', 'blur', 'change'];  // 支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__selected']; //系统列集合
+	var _sysColName = ['__$tr', '__index', '__selected', '__hide'];  // 行数据保留字段
 
 	var getData = function(grid, page, fun) {
 		var param = {};
@@ -1032,6 +1034,7 @@ define([
 		},
 
 		update: function(data) {
+			tools.typeof(data) == 'object' && (data = [data]);
 			for (var i in this.rows) {
 				if (!data[i]) return this;
 				for (var j in this.rows[i]) {
@@ -1039,6 +1042,24 @@ define([
 						this.rows[i][j] = data[i][j];
 					}
 				}
+			}
+			return this;
+		},
+
+		show: function() {
+			for (var i in this.rows) {
+				var row = this.rows[i];
+				row.__hide = false;
+				$(row.__$tr).show();
+			}
+			return this;
+		},
+
+		hide: function() {
+			for (var i in this.rows) {
+				var row = this.rows[i];
+				row.__hide = true;
+				$(row.__$tr).hide();
 			}
 			return this;
 		},
