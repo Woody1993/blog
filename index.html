@@ -4,7 +4,6 @@
 	<meta charset="UTF-8">
 	<title>dToolkit</title>
 	<link rel="shortcut icon" href="favicon.ico" >
-	
 	<script src="src/d.toolkit.js"></script>
 	<style>
 		html, body {
@@ -22,30 +21,40 @@
 			width: 100%;
 		}
 
-		/* nav */
-		.nav {
+		/* side */
+		.side {
 			display: flex;
 			flex-direction: column;
 			flex-basis: 240px;
 		}
-		.nav dt {
+		.side .logo {
 			display: flex;
 			align-items: center;
 			flex-basis: 100px;
 			padding-left: 20px;
 		}
-		.nav dt img {
+		.side .logo img {
 			height: 80px
 		}
 
-		.nav dd {
+		.side .nav {
 			flex-grow: 1;
 			overflow: auto;
 		}
-		.nav dd ul {
-			padding: 20px 0;
+		.side .nav dl {
+			padding-top: 20px;
 		}
-		.nav dd li a {
+		.side .nav dt {
+			border-left: 5px solid #657b83;
+			line-height: 40px;
+			font-weight: bold;
+			text-indent: 20px;
+			background: #f6f6f6;
+		}
+		.side .nav li {
+			margin-left: 10px;
+		}
+		.side .nav li a {
 			display: block;
 			height: 40px;
 			line-height: 40px;
@@ -54,16 +63,16 @@
 			text-indent: 20px;
 			transition: color .15s ease;
 		}
-		.nav dd li:nth-child(n+2) {
+		.side .nav li:nth-child(n+2) {
 			border-top: 1px solid #efefef;
 		}
-		.nav dd li:hover a, .nav dd li.z-crt a {
+		.side .nav li:hover a {
 			color: #409eff;
 		}
-		.nav dd li:active a {
+		.side .nav li:active a {
 			color: #444;
 		}
-		/* end nav */
+		/* end side */
 
 		.main {
 			flex-grow: 1;
@@ -115,16 +124,30 @@
 </head>
 <body>
 	<div class="body">
-		<dl class="nav">
-			<dt>
+		<div class="side">
+			<div class="logo">
 				<a href="/"><img src="logo.jpg" alt=""></a>
-			</dt>
-			<dd>
-				<ul id="nav">
-					<li><a href="#/demo/grid.html">表格</a></li>
-				</ul>
-			</dd>
-		</dl>
+			</div>
+			<div class="nav" id="nav">
+				<dl>
+					<dt>模块组件</dt>
+					<dd>
+						<ul>
+							<li><a href="#/api/index.html?api=tools">工具方法</a></li>
+							<li><a href="#/api/index.html?api=grid">表格</a></li>
+						</ul>
+					</dd>
+				</dl>
+				<dl>
+					<dt>组件预览</dt>
+					<dd>
+						<ul>
+							<li><a href="#/demo/grid.html">表格</a></li>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+		</div>
 		<div class="main"></div>
 
 		<div class="full-btn" id="full"></div>
@@ -141,7 +164,7 @@
 				pathname = pathname.join('/');
 				$('.main').html($('<iframe>').prop('src', hash ?
 					origin + pathname + '/' + hash :
-					''
+					'api/index.html?api=home'
 				));
 			};
 

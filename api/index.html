@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>dToolkit</title>
+	<script src="../src/d.toolkit.js"></script>
+	<style>
+		body {
+			padding: 20px;
+		}
+		h2 {
+			border-bottom: 1px solid #ddd;
+			margin: 10px 0;
+			line-height: 40px;
+			font-size: 20px;
+			color: #303030;
+		}
+		h3 {
+			border-bottom: 1px solid #ddd;
+			margin: 10px 0;
+			line-height: 36px;
+			font-size: 18px;
+			color: #303030;
+		}
+		h4 {
+			padding-bottom: 5px;
+			margin: 10px 0;
+			line-height: 32px;
+			font-size: 16px;
+			color: #303030;
+		}
+		p {
+			margin: 5px 0;
+			line-height: 28px;
+			font-size: 14px;
+			text-indent: 28px;
+		}
+		a {
+			color: #258fb8;
+		}
+		b {
+			font-weight: bold;
+		}
+		li {
+			margin: 10px 0;
+			color: #666;
+		}
+		li:before {
+			content: "";
+			display: inline-block;
+			*display: inline;
+			*zoom: 1;
+			width: 6px;
+			height: 6px;
+			border: 1px solid #657b83;
+			border-radius: 10px;
+			margin-right: 10px;
+			background: #657b83;
+		}
+		xmp {
+			padding: 14px;
+			border-left: 5px solid #657b83;
+			margin: 15px 0;
+			line-height: 18px;
+			background: #f6f6f6;
+		}
+	</style>
+</head>
+<body>
+	<script>
+		require(['jquery'], function($) {
+			location.search && $('body').load(location.search.split('=')[1] + '.html');
+		});
+	</script>
+</body>
+</html>

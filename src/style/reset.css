@@ -30,7 +30,6 @@ h1, h2, h3, h4, h5, h6, b, strong { font-weight: normal; }
 .b { font-weight: bold; }
 ins, .ins { text-decoration: underline; }
 del, .del { text-decoration: line-through; }
-*/
 
 /* 重置列表元素 */
 ul, ol { list-style: none; }
