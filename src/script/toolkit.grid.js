@@ -941,7 +941,7 @@ define([
 
 	rowsHandle.prototype = {
 		moveTo: function(index) {
-			var total = grid.data.length - this.length;
+			var total = this.grid.data.length - this.length;
 			if (index >= total) index = -1;
 			else if (index < -total) index = 0;
 
@@ -969,7 +969,7 @@ define([
 			for (var i = 0; i < data.length; i++) {
 				fun(data[i]);
 			}
-			updateRowIndex.call(grid);
+			updateRowIndex.call(this.grid);
 			return this;
 		},
 
