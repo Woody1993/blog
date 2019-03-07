@@ -66,7 +66,7 @@
 		.side .nav li:nth-child(n+2) {
 			border-top: 1px solid #efefef;
 		}
-		.side .nav li:hover a {
+		.side .nav li:hover a, .side .nav li.z-crt a {
 			color: #409eff;
 		}
 		.side .nav li:active a {
@@ -124,11 +124,11 @@
 </head>
 <body>
 	<div class="body">
-		<div class="side">
+		<div class="side" id="nav">
 			<div class="logo">
-				<a href="/"><img src="logo.jpg" alt=""></a>
+				<a href="#"><img src="logo.jpg" alt=""></a>
 			</div>
-			<div class="nav" id="nav">
+			<div class="nav">
 				<dl>
 					<dt>模块组件</dt>
 					<dd>
@@ -170,8 +170,10 @@
 
 			jump();
 
-			$('#nav a').click(function() {
+			$('a').click(function() {
 				setTimeout(jump);
+				$('li.z-crt').removeClass('z-crt');
+				$(this).parent('li').addClass('z-crt');
 			});
 
 			window.addEventListener('popstate', function(e) {
