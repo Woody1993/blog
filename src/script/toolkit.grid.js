@@ -1016,7 +1016,7 @@ define([
 				$(this.rows[0].__$tr).addClass('z-crt');
 				this.rows[0].__selected = true;
 
-				grid.opt.rowOnSelect(rowsDataClean(this));
+				grid.opt.rowOnSelect(rowsDataClean(this.getData()));
 			});
 			return this;
 		},
