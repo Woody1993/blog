@@ -137,17 +137,17 @@ define([
 		leftSpaceObj && cols.unshift(leftSpaceObj);
 		rightSpaceObj && cols.push(rightSpaceObj);
 		
-		var sifter = function(cols, frozen) {
+		!function poll(cols, frozen) {
 			var width = 0;
 			for (var i in cols) {
-				if (!cols[i]) continue;
+				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
 					cols[i] = $.extend({
 						title: '',
 						align: 'center',
 						frozen: 'none'
 					}, cols[i]);
-					cols[i].width = sifter(cols[i].subCol, cols[i].frozen);
+					cols[i].width = poll(cols[i].subCol, cols[i].frozen);
 				} else {
 					if (cols[i].sys == 'index') {
 						cols[i].name = '__index';
@@ -173,6 +173,7 @@ define([
 						sort: false
 					}, cols[i]);
 
+					// 判断是不是占位列
 					if (!cols[i].space) {
 						if (frozen) cols[i].frozen = frozen;
 						if (cols[i].count) {
@@ -193,11 +194,9 @@ define([
 								param: cols[i].name
 							}, tools.typeof(cols[i].sort) == 'object' ? cols[i].sort : {});
 						}
-						var width = (parseInt(cols[i].width) || 100) + 14;
-						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += width + 1;
-						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += width + 1;
-	
-						cols[i].width = width;
+						cols[i].width = (parseInt(cols[i].width) || 100) + 14;
+						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += cols[i].width + 1;
+						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += cols[i].width + 1;
 					}
 
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
@@ -205,8 +204,7 @@ define([
 				width += cols[i].width + 1;
 			}
 			return width - 1;
-		};
-		sifter(cols);
+		}(cols);
 		return json
 	};
 
@@ -345,7 +343,7 @@ define([
 		};
 		getDepth(cols);
 
-		var f = function(cols) {
+		!function poll(cols) {
 			var $trs = [$('<tr>'), $('<tr>'), $('<tr>')];
 			var subCol = [];
 			var maxDepth = 0;
@@ -353,6 +351,7 @@ define([
 				maxDepth = maxDepth > cols[i].depth ? maxDepth : cols[i].depth
 			};
 			for (var i = 0, len = cols.length; i < len; i++) {
+				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
 					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="width:' + cols[i].width + 'px;height:35px;line-height:35px;text-align:' + cols[i].align + ';"></div></th>');
 					$th.find('div').html(cols[i].title);
@@ -372,9 +371,8 @@ define([
 			for (var i=0; i<3; i++) {
 				if ($trs[i].find('th').length > 0) $hds[i].append($trs[i]);
 			}
-			if (subCol.length > 0) f(subCol)
-		};
-		f(cols);
+			if (subCol.length > 0) poll(subCol)
+		}(cols);
 
 		if (n) {
 			return [

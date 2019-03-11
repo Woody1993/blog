@@ -213,6 +213,11 @@
     padding: 0 7px;
     word-break: break-all;
 }
+.d-grid-body div.td * {
+    box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box;
+}
 .d-grid-body div.td.z-hide-txt {
     overflow: hidden;
     text-overflow: ellipsis;

@@ -61,6 +61,11 @@ require([
 				name: 'status',
 				width: 60
 			}, {
+				title: '不显示',
+				sifter: function() {
+					return false;
+				}
+			}, {
 				title: '订单号',
 				frozen: 'left',
 				name: 'orderNum',
@@ -77,7 +82,7 @@ require([
 						name: 'icon',
 						width: 60,
 						dataFormatter: function(value) {
-							return '<div style="width:70px;height:70px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'" /></div>';
+							return '<div style="width:60px;height:60px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'" /></div>';
 						},
 						titleFormatter: false
 					}, {
