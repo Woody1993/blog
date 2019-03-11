@@ -260,7 +260,7 @@ define([
 			};
 		}
 
-		var $headObjs = createThead.call(grid, grid.opt.colModel, true);
+		var $headObjs = createThead.call(grid, grid.opt.colModel);
 		grid.root.head.main.dom.append($headObjs[0]);
 		grid.root.head.left.dom.append($headObjs[1]);
 		grid.root.head.right.dom.append($headObjs[2]);
@@ -279,7 +279,7 @@ define([
 		grid.box.html(grid.root.dom);
 	};
 
-	var createThead = function(cols, n) {
+	var createThead = function(cols) {
 		var grid = this;
 		var $hds = [$('<thead>'), $('<thead>'), $('<thead>')];
 
@@ -374,19 +374,11 @@ define([
 			if (subCol.length > 0) poll(subCol)
 		}(cols);
 
-		if (n) {
-			return [
-				$('<table>').html($hds[0]),
-				$('<table>').html($hds[1]),
-				$('<table>').html($hds[2])
-			]
-		} else {
-			return [
-				$('<div class="d-grid-hd">').html($('<table>').html($hds[0])),
-				$('<div class="d-grid-hd">').html($('<table>').html($hds[1])),
-				$('<div class="d-grid-hd">').html($('<table>').html($hds[2]))
-			]
-		}
+		return [
+			$('<table>').html($hds[0]),
+			$('<table>').html($hds[1]),
+			$('<table>').html($hds[2])
+		]
 	};
 
 	var createRow = function(grid, cols, data) {
@@ -624,7 +616,6 @@ define([
 	}, 100);
 
 	var bindEvent = function(grid) {
-		var $box = grid.box;
 		grid.root.head.left.dom.find('.d-grid-chk-all').click(function() {
 			if ($(this).attr('checked')) {
 				grid.getAllRows().select();
