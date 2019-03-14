@@ -6,7 +6,7 @@ require([
 		box: '#box',
 
 		url: 'grid.json',
-		dataType: 'text',
+		dataType: 'json',
 		dataFormatter: function(data) {
 			return data.data;
 		},
