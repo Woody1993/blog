@@ -75,10 +75,18 @@
 	</style>
 </head>
 <body>
+	<div></div>
 	<script>
 		require(['jquery'], function($) {
-			location.search && $('body').load(location.search.split('=')[1] + '.md', '', function(data) {
-				$('body').html(marked(data));
+			// location.search && $('div').load(location.search.split('=')[1] + '.md', '', function(data) {
+			// 	$('div').html(marked(data));
+			// });
+			location.search && $.ajax({
+				url: location.search.split('=')[1] + '.md',
+				dataType: 'text',
+				success: function(msg) {
+					$('body').html(marked(msg));
+				}
 			});
 		});
 	</script>
