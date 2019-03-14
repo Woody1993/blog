@@ -1,20 +1,28 @@
 # 用户手册
+
 ```
 基于模块化加载方案的后台管理系统工具包
 ```
+
 ## 目录结构
+
 ```
 ├ font  // 字体图标文件
 ├ script  // 各模块组件
 ├ style  // 样式文件
 └ d.toolkit.js  // 基础核心代码
 ```
+
 ## 开始使用
+
 将工具包完整的部署到你的项目目录或静态资源服务器当中，只需要在页面中引入基础核心代码文件：
+
 ```
 <script src="d.toolkit.js"></script>
 ```
+
 没错，不需要去引入其它文件，因为它们都是在实际使用时才会自动加载。比如：
+
 ```
 <!DOCTYPE html>
 <html lang="zh">
@@ -37,7 +45,9 @@
 </body>
 </html>
 ```
+
 **不要改变工具包的目录结构，否则会导致各组件载入失败**。如果一定需要修改目录，可以在**d.toolkit.js**文件中找到如下代码，并修改其它文件的相对路径地址。或直接使用相对路径去加载组件。
+
 ```
 var paths = {
     reset: "css!style/reset",
@@ -47,9 +57,13 @@ var paths = {
     tools: "script/toolkit.tools"
 };
 ```
+
 工具包内置了jQuery框架。如果你只需要在模块作用域中使用jQuery，只需要引入该模块即可，不需要在项目内添加jQuery文件。如果你需要在其它地方使用jQuery，则需要自己准备jQuery文件并引入页面。
+
 ## 加载模块
+
 我们需要使用require方法去加载所需要的模块，并在回调方法中去使用。通常来说，回调方法的参数和加载文件当中的模块一一对应。但如果加载文件不是js文件或其中没有定义模块，则不会出现与之对应的参数：
+
 ```
 require([
     'jquery',  // 通过预先定义好的模块名称加载
@@ -60,7 +74,9 @@ require([
 
 });
 ```
+
 有可能你只使用了一个模块，可以简化成以下写法：
+
 ```
 require('jquery', function($) {
 
@@ -68,7 +84,9 @@ require('jquery', function($) {
 
 });
 ```
+
 或者不需要使用任何组件却依然想使用require方法（虽然和不使用没什么区别）：
+
 ```
 require(function() {
 
@@ -76,8 +94,11 @@ require(function() {
 
 });
 ```
+
 ## 定义模块
+
 d.toolkit.js除了为我们提供require方法外，还提供了自定义模块的方法define。你需要新建一个文件（比如module.js），并写入如下代码：
+
 ```
 define(function() {
 
@@ -86,7 +107,9 @@ define(function() {
     return [Object Object];  // 在这里暴露该模块的操作对象
 });
 ```
+
 如果你的自定义模块需要依赖其他模块，可以使用如下写法加载其他模块：
+
 ```
 define([
     'jquery'
@@ -94,13 +117,17 @@ define([
 
 });
 ```
+
 或者简化一下：
+
 ```
 define('jquery', function($) {
 
 });
 ```
+
 然后就可以在需要使用的地方加载该模块了：
+
 ```
 require('module', function(obj) {
 
@@ -108,8 +135,11 @@ require('module', function(obj) {
 
 });
 ```
+
 ## 加载样式文件
+
 我们可以通过使用css!前缀加载所依赖样式文件：
+
 ```
 require([
     'css!style/reset.css'  // 这里同样可以省略.css后缀

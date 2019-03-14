@@ -157,12 +157,10 @@ define([
 						name: '',
 						width: 100,
 						frozen: 'none',
-						sortBy: 'none',
-						sortParam: '',
 						align: 'left',
+						overflow: true,
 						editable: false,
 						iptClassName: '',
-						overflow: true,
 						dataFormatter: function(value) {
 							return value
 						},
@@ -405,14 +403,14 @@ define([
 					data[name] = $(this).val();
 				});
 			};
-			if (!col.overflow) {
+			if (col.overflow) {
 				$td.find('div').addClass('z-hide-txt');
 			}
 			$tr.append($td);
 
 			function setVal(v) {
-				if (v !== undefined && tools.typeof(col.titleFormatter) == 'function') {
-					var title = col.titleFormatter(v);
+				if (v !== undefined && col.titleFormatter) {
+					var title = tools.typeof(col.titleFormatter) == 'function' ? col.titleFormatter(v) : v;
 					tools.typeof(title) == 'string' && (title = title.replace(/<\/?[^>]*>/g, ''));
 					$td.attr('title', title);
 				}
