@@ -635,7 +635,7 @@ define([
 				box: 'body',
 				dataFrom: 'ajax',
 				url: '',
-				method: 'POST',
+				method: 'GET',
 				data: {},
 				pageSize: 20,
 				dataType: 'json',
