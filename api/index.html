@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>dToolkit</title>
 	<script src="../src/d.toolkit.js"></script>
+	<script src="marked.min.js"></script>
 	<style>
 		body {
 			padding: 20px;
@@ -64,7 +65,7 @@
 			margin-right: 10px;
 			background: #657b83;
 		}
-		xmp {
+		pre {
 			padding: 14px;
 			border-left: 5px solid #657b83;
 			margin: 15px 0;
@@ -76,7 +77,9 @@
 <body>
 	<script>
 		require(['jquery'], function($) {
-			location.search && $('body').load(location.search.split('=')[1] + '.html');
+			location.search && $('body').load(location.search.split('=')[1] + '.md', '', function(data) {
+				$('body').html(marked(data));
+			});
 		});
 	</script>
 </body>
