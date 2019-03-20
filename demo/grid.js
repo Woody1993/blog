@@ -5,16 +5,18 @@ require([
 	tb = grid({
 		box: '#box',
 
-		url: 'grid.json',
-		dataType: 'json',
-		dataFormatter: function(data) {
-			return data.data;
-		},
-		countDataFormatter: function(data) {
-			return data.count;
-		},
-		totalDataFormatter: function(data) {
-			return data.total;
+		dataFrom: {
+			url: 'grid.json',
+			dataType: 'json',
+			dataFormatter: function(data) {
+				return data.data;
+			},
+			collectFormatter: function(data) {
+				return data.count;
+			},
+			totalFormatter: function(data) {
+				return data.total;
+			}
 		},
 
 		width: '100%',
@@ -22,15 +24,17 @@ require([
 			return window.gridHeight || '600'
 		},
 
-		rowOnClick: function(data) {
-			console.log('click:', data);
-		},
-		rowBeforeSelect: function(data) {
-			console.log('beforeSelect:', data);
-			if (data.status == '待付款2') return false;
-		},
-		rowOnSelect: function(data) {
-			console.log('select:', data);
+		event: {
+			click: function(data) {
+				console.log('click:', data);
+			},
+			beforeSelect: function(data) {
+				console.log('beforeSelect:', data);
+				if (data.status == '待付款2') return false;
+			},
+			select: function(data) {
+				console.log('select:', data);
+			}
 		},
 
 		check: {
@@ -204,8 +208,8 @@ require([
 			}, {
 				title: '备注',
 				name: 'remark',
-				editable: true,
-				editEvent: {
+				editable: {
+					className: 'j-test j-test2',
 					click: function() {
 						console.log('click');
 					},
@@ -218,8 +222,7 @@ require([
 					change: function() {
 						console.log('change');
 					}
-				},
-				iptClassName: 'j-test j-test2'
+				}
 			}, {
 				title: '操作',
 				frozen: 'right',

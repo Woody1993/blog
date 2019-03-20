@@ -63,9 +63,9 @@ define([
 
 	var getData = function(grid, page, fun) {
 		var param = {};
-		var opt = grid.opt;
+		var opt = grid.opt.dataFrom;
 		page = page ? page : 1;
-		param = typeof opt.data == 'function' ? opt.data() : opt.data;
+		param = typeof opt.data == 'function' ? opt.data() : opt.data || {};
 		param.pageIndex = page;
 		param.pageSize = opt.pageSize;
 		if (grid.sortBy) {
@@ -82,8 +82,8 @@ define([
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
-				grid.countData = opt.countDataFormatter(msg)
-				grid.rowsCount = opt.totalDataFormatter(msg);
+				grid.collectData = opt.collectFormatter(msg)
+				grid.total = opt.totalFormatter(msg);
 				fun(opt.dataFormatter(msg));
 			}
 		});
@@ -191,6 +191,23 @@ define([
 								type: 'desc,asc',  // desc,asc || asc,desc || desc || asc
 								param: cols[i].name
 							}, tools.typeof(cols[i].sort) == 'object' ? cols[i].sort : {});
+						}
+						if (cols[i].editable) {
+							cols[i].editable = $.extend({
+								className: '',
+								click: function() {
+									console.log('click');
+								},
+								focus: function() {
+									console.log('focus')
+								},
+								blur: function() {
+									console.log('blur');
+								},
+								change: function() {
+									console.log('change');
+								}
+							}, tools.typeof(cols[i].editable) == 'object' ? cols[i].editable : {});
 						}
 						cols[i].width = (parseInt(cols[i].width) || 100) + 14;
 						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += cols[i].width + 1;
@@ -391,10 +408,10 @@ define([
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px;text-align:' + col.align + '">');
 
 			if (col.editable) {
-				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.iptClassName);
+				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.editable.className);
 				$td.children('div').html($ipt);
 				for (var i in _eventType) {
-					var eFun = col.editEvent[_eventType[i]];
+					var eFun = col.editable[_eventType[i]];
 					if (typeof eFun == 'function') {
 						$ipt[_eventType[i]](eFun);
 					}
@@ -446,8 +463,8 @@ define([
 			insertTd(cols[i]);
 		};
 
-		$tr.click(function() {
-			opt.rowOnClick(rh.getData());
+		opt.event.click && $tr.click(function() {
+			opt.event.click(rh.getData());
 		});
 		if (opt.check && opt.check.callType != 1) {
 			$tr.click(function() {
@@ -496,7 +513,7 @@ define([
 							return count;
 						}
 					})(col.name);
-				var html = col.count.totalFormatter(count, this.countData[col.name]);
+				var html = col.count.totalFormatter(count, this.collectData[col.name]);
 				tools.typeof(html) == 'array' && (html = html.join('</br>'));
 				$td.find('div').html(html);
 			}
@@ -631,30 +648,31 @@ define([
 		init: function(opt) {
 			opt = $.extend({
 				box: 'body',
-				dataFrom: 'ajax',
+				width: '100%',
+				height: 'auto',
+				event: {},
+				colModel: [],
+				check: false,
+				pageBar: true
+			}, opt || {});
+
+			opt.dataFrom = $.extend({
+				type: 'ajax',
 				url: '',
 				method: 'GET',
-				data: {},
-				pageSize: 20,
+				data: '',
 				dataType: 'json',
+				pageSize: 20,
 				dataFormatter: function(data) {
 					return data.data;
 				},
-				countDataFormatter: function(data) {
+				collectFormatter: function(data) {
 					return data.count;
 				},
-				totalDataFormatter: function(data) {
+				totalFormatter: function(data) {
 					return data.total;
-				},
-				width: '100%',
-				height: 'auto',
-				colModel: [],
-				check: false,
-				pageBar: true,
-				rowOnClick: function() {},
-				rowBeforeSelect: function() {},
-				rowOnSelect: function() {}
-			}, opt || {});
+				}
+			}, opt.dataFrom || {});
 
 			if (opt.check) {
 				opt.check = $.extend({
@@ -667,7 +685,6 @@ define([
 			this.opt = opt;
 			this.box = $(opt.box + ':first');
 			if (this.box.length == 0) return this;
-			this.rowsCount = 0;
 			this.width = opt.width;
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
@@ -701,7 +718,7 @@ define([
 				};
 
 				if (opt.pageBar) {
-					this.root.page.dom.html(createPage(page, opt.pageSize, me.rowsCount));
+					this.root.page.dom.html(createPage(page, opt.dataFrom.pageSize, me.total));
 					me.pageCount = this.root.page.dom.find('input').attr('maxnum');
 					this.root.page.dom.find('a').click(function() {
 						if ($(this).hasClass('z-dis')) return;
@@ -741,10 +758,10 @@ define([
 				}
 			}.bind(this);
 
-			if (opt.dataFrom == 'ajax') {
+			if (opt.dataFrom.type == 'ajax') {
 				getData(me, page, create);
-			} else if (opt.dataFrom == 'local') {
-				create(opt.data);
+			} else if (opt.dataFrom.type == 'local') {
+				create(opt.dataFrom.data);
 			}
 			return this;
 		},
@@ -996,7 +1013,7 @@ define([
 			this.each(function() {
 				if ($(this.rows[0].__$tr).hasClass('z-crt')) return;
 
-				if (grid.opt.rowBeforeSelect(this.getData()) === false) return;
+				if (grid.opt.event.beforeSelect && grid.opt.event.beforeSelect(this.getData()) === false) return;
 				
 				if (!grid.opt.check.multiple) {
 					grid.getCrtRows().unselect();
@@ -1005,7 +1022,7 @@ define([
 				$(this.rows[0].__$tr).addClass('z-crt');
 				this.rows[0].__selected = true;
 
-				grid.opt.rowOnSelect(rowsDataClean(this.getData()));
+				grid.opt.event.select && grid.opt.event.select(rowsDataClean(this.getData()));
 			});
 			return this;
 		},
