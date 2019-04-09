@@ -39,6 +39,7 @@
 		case 'length':  // 字符串长度校验
 			var str = value + '';
 			if (str.length < json.range[0] || str.length > json.range[1]) return false;
+			return true;
 			break;
 
 		case 'range':  // 数字范围校验
@@ -62,7 +63,7 @@
 
 	var checkItem = function(name, value, rule, next) {
 		if (!rule || !rule.length) {
-			if (next) next(true);
+			next && next(true);
 			return;
 		}
 
@@ -86,8 +87,7 @@
 			} else {
 				callback(index, checkRule.call(self, value, r), r);
 			}
-		}
-		loop(0);
+		};
 
 		function callback(index, state, r) {
 			if (state)  {
@@ -101,11 +101,13 @@
 			}
 
 			if (index == rule.length-1 || !state) {
-				if (next) next(state);
+				next && next(state);
 			} else {
 				loop(++index);
 			}
-		}
+		};
+
+		loop(0);
 	}
 
 	function serialize($obj, opt) {
@@ -223,15 +225,15 @@
 				arr.push(name);
 			}
 
-			function loop(index) {
+			!function loop(index) {
 				var name = arr[index];
 				if (opt.skip[name] && opt.skip[name]()) {
-					callback(true);
+					itemCallback(true);
 				} else {
-					checkItem.call(me, name, json[name], opt.rule[name], callback);
+					checkItem.call(me, name, json[name], opt.rule[name], itemCallback);
 				}
 
-				function callback(s) {
+				function itemCallback(s) {
 					if (!s) {
 						state = false;
 						if (!opt.vaildAll) {
@@ -240,15 +242,12 @@
 					}
 
 					if (index == arr.length-1) {
-						if (state) {
-							callback && callback.call(me);
-						}
+						state && callback && callback.call(me);
 					} else {
 						loop(++index);
 					}
 				}
-			}
-			loop(0);
+			}(0);
 		},
 
 		serialize: function() {
