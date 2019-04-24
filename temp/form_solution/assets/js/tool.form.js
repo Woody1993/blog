@@ -5,7 +5,8 @@
 		tel: /^(0[0-9]{2,3}\-)?([2-9][0-9]{6,7})+(\-[0-9]{1,4})?$/,  // 固定电话
 		email: /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/,  // 邮箱
 		idcard: /^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$|^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/,  // 身份证号
-		psw: /^[\@A-Za-z0-9\!\#\$\%\^\&\*\.\~]{6,20}$/  // 密码，6-20位，包含字母数字以及!、@、#、$、%、^、&、*、.、~
+		username: /^([a-zA-Z0-9\u4e00-\u9fa5_-]){4,20}$/,  // 用户名，4-20位，包含汉字、字母、数字以及-、_
+		password: /^[\@A-Za-z0-9\!\#\$\%\^\&\*\.\~]{6,20}$/  // 密码，6-20位，包含字母、数字以及!、@、#、$、%、^、&、*、.、~
 	};
 
 	var checkRule = function(value, json) {
@@ -171,6 +172,7 @@
 			vaildAll: false,
 			rule: {},
 			skip: {},
+			dataFormatter: {},
 			pass: function() {},
 			fail: function() {},
 			beforeVaildate: function() {},
@@ -192,11 +194,22 @@
         	if (opt.beforeVaildate() === false) return false;
             this.vaildate(function() {
         		if (opt.beforeSubmit() === false) return false;
+        		var param = this.opt.dataFormatter 
+        			? (
+        				typeof this.opt.dataFormatter == 'function'
+							? this.opt.dataFormatter(this.serialize())
+							: (function(data, fmt) {
+								for (var i in data) {
+									fmt[i] && (data[i] = fmt[i](data[i]));
+								}
+								return data;
+							})(this.serialize(), this.opt.dataFormatter)
+        			) : this.serialize();
 				$.ajax({
-					url: '',
+					url: opt.url || this.$form.attr('action'),
 					type: 'post',
 					dataType: 'json',
-					data: this.serialize(),
+					data: param,
 					success: opt.submitSuccess,
 					error: opt.submitError
 				});
