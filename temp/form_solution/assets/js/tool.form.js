@@ -187,13 +187,13 @@
 		this.$form.find('input, textarea').change(function() {
 			var name = $(this).attr('name');
 			if (!name) return;
-			checkItem.call(self, name, $(this).val(), opt.rule[name])
+			checkItem.call(self, name, $(this).val(), opt.rule[name], false)
 		});
 
 		this.$form.submit(function() {
         	if (opt.beforeVaildate() === false) return false;
-            this.vaildate(function() {
-        		if (opt.beforeSubmit() === false) return false;
+            this.vaildate(function(state) {
+        		if (!state || opt.beforeSubmit() === false) return false;
         		var param = this.opt.dataFormatter 
         			? (
         				typeof this.opt.dataFormatter == 'function'
@@ -250,12 +250,13 @@
 					if (!s) {
 						state = false;
 						if (!opt.vaildAll) {
+							callback && callback(false);
 							return;
 						}
 					}
 
 					if (index == arr.length-1) {
-						state && callback && callback.call(me);
+						callback && callback(state);
 					} else {
 						loop(++index);
 					}
