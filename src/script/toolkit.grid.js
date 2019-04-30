@@ -37,8 +37,8 @@
  * 				整列隐藏  [5]
  * 				整列拖拽排序  [5]
  * 				保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
- * 					├ 获取已选数据  getCrtData  [1]
- * 					└ 清除已选数据  cleanCrtData  [1]
+ * 					├ 获取已选数据  getCrtData √
+ * 					└ 清除已选数据  clearCrtData √
  *              表格搜索功能  [3]
  * Date: 2018-11-01
 **/
@@ -684,10 +684,16 @@ define([
 
 			this.opt = opt;
 			this.box = $(opt.box + ':first');
-			if (this.box.length == 0) return this;
 			this.width = opt.width;
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
+			if (opt.dataFrom.idKey) {
+				this.crtData = {
+					key: opt.dataFrom.idKey,
+					data: [],
+					index: []
+				};
+			}
 			initFrame(this);
 			scrollEvent.call(this);
 			bindEvent(this);
@@ -843,11 +849,23 @@ define([
 					$($trs[2]).before(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			};
-			for (var i = 0, len = data.length; i < len; i++) {
-				fun(data[i])
-			}
+
+			data.forEach(function(item) {
+				fun(item);
+			});
+
 			updateRowIndex.call(me);
 			initRowHeight.call(me);
+
+			if (me.crtData) {
+				var index = [];
+				data.forEach(function(item) {
+					if (me.crtData.index.indexOf(item[me.crtData.key]) > -1) {
+						index.push(item.__index - 1);
+					}
+				});
+				me.getRows(index).select();
+			}
 
 			var $imgs = this.root.body.dom.find('img');
 			if ($imgs.length > 0) {
@@ -913,6 +931,19 @@ define([
 			return new rowsHandle(this, a);
 		},
 
+		// 获取已选数据
+		getCrtData: function() {
+			return this.crtData.data;
+		},
+
+		// 清除已选数据
+		clearCrtData: function() {
+			this.crtData.data = [];
+			this.crtData.index = [];
+			this.getCrtRows().unselect();
+			return this;
+		},
+
 		// 修改表格宽度
 		setWidth: function(w) {
 			this.width = w;
@@ -930,7 +961,7 @@ define([
 
 	main.fn.init.prototype = main.fn;
 
-	var rowsDataClean = function(data) {
+	var clearRowsData = function(data) {
 		var json = {};
 		for (var i in data) {
 			if (_sysColName.indexOf(i) == -1) {
@@ -1003,7 +1034,7 @@ define([
 		getData: function() {
 			var data = [];
 			for (var i in this.rows) {
-				data.push(rowsDataClean(this.rows[i]));
+				data.push(clearRowsData(this.rows[i]));
 			}
 			return data.length == 1 ? data[0] : data;
 		},
@@ -1022,18 +1053,31 @@ define([
 				$(this.rows[0].__$tr).addClass('z-crt');
 				this.rows[0].__selected = true;
 
-				grid.opt.event.select && grid.opt.event.select(rowsDataClean(this.getData()));
+				var data = clearRowsData(this.getData());
+				if (grid.crtData && data[grid.crtData.key] !== undefined && grid.crtData.index.indexOf(data[grid.crtData.key]) == -1) {
+					grid.crtData.data.push(data);
+					grid.crtData.index.push(data[grid.crtData.key]);
+				}
+
+				grid.opt.event.select && grid.opt.event.select(data);
 			});
 			return this;
 		},
 
 		unselect: function() {
-			for (var i in this.rows) {
-				var row = this.rows[i];
-				if (!$(row.__$tr).hasClass('z-crt')) continue;
-				$(row.__$tr).removeClass('z-crt');
-				row.__selected = false;
-			}
+			var grid = this.grid;
+			this.each(function() {
+				if (!$(this.rows[0].__$tr).hasClass('z-crt')) return;
+				$(this.rows[0].__$tr).removeClass('z-crt');
+				this.rows[0].__selected = false;
+
+				var data = clearRowsData(this.getData());
+				if (grid.crtData && grid.crtData.index.indexOf(data[grid.crtData.key]) > -1) {
+					var index = grid.crtData.index.indexOf(data[grid.crtData.key]);
+					grid.crtData.data.splice(index, 1);
+					grid.crtData.index.splice(index, 1);
+				}
+			});
 			return this;
 		},
 

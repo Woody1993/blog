@@ -16,7 +16,8 @@ require([
 			},
 			totalFormatter: function(data) {
 				return data.total;
-			}
+			},
+			idKey: 'id'
 		},
 
 		width: '100%',
