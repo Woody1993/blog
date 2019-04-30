@@ -82,9 +82,11 @@ define([
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
-				grid.collectData = opt.collectFormatter(msg)
-				grid.total = opt.totalFormatter(msg);
-				fun(opt.dataFormatter(msg));
+				fun(
+					opt.dataFormatter(msg),
+					opt.collectFormatter(msg),
+					opt.totalFormatter(msg)
+				);
 			}
 		});
 	};
@@ -490,7 +492,7 @@ define([
 		return $tr;
 	};
 
-	var createCount = function(cols, data) {
+	var createCount = function(cols, data, collectData) {
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px">');
@@ -513,7 +515,7 @@ define([
 							return count;
 						}
 					})(col.name);
-				var html = col.count.totalFormatter(count, this.collectData[col.name]);
+				var html = col.count.totalFormatter(count, collectData[col.name]);
 				tools.typeof(html) == 'array' && (html = html.join('</br>'));
 				$td.find('div').html(html);
 			}
@@ -527,14 +529,71 @@ define([
 		return $table;
 	};
 
-	var createPage = function(page, pageSize, rowCount) {
+	var createPage = function(page, total) {
 		page = page ? page : 1;
-		var pageCount = Math.ceil(rowCount / pageSize);
-		pageCount = pageCount ? pageCount : 1;
+		var grid = this;
+		var pageSize = this.opt.dataFrom.pageSize,
+			pageCount = this.pageCount = Math.ceil(total / pageSize);
 		var l = (page - 1) * pageSize + 1;
-		var r = page * pageSize > rowCount ? rowCount : page * pageSize;
-		var html = ['<a href="javascript:" class="page-first ' + (page == 1 ? 'z-dis' : '') + '"><i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i></a>', '<a href="javascript:" class="page-prev ' + (page == 1 ? 'z-dis' : '') + '"><i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i></a>', '<span>第<form><input type="text" value="' + page + '" maxnum="' + pageCount + '"></form>页 共' + pageCount + '页</span>', '<a href="javascript:" class="page-next ' + (page == pageCount ? 'z-dis' : '') + '"><i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i></a>', '<a href="javascript:" class="page-last ' + (page == pageCount ? 'z-dis' : '') + '"><i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i></a>', '<a href="javascript:" class="page-update"><i class="df df-refresh"></i></a>', '<p>显示 ' + (rowCount ? l : 0) + ' - ' + r + '，共' + rowCount + '条</p>', ];
-		return html.join('')
+		var r = page * pageSize > total ? total : page * pageSize;
+		var $page = $([
+			'<div>',
+				'<a href="javascript:" class="page-first ' + (page == 1 ? 'z-dis' : '') + '">',
+					'<i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i>',
+				'</a>',
+				'<a href="javascript:" class="page-prev ' + (page == 1 ? 'z-dis' : '') + '">',
+					'<i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i>',
+				'</a>',
+				'<span>',
+					'第<form><input type="text" value="' + page + '"></form>页 ',
+					'共' + pageCount + '页',
+				'</span>',
+				'<a href="javascript:" class="page-next ' + (page == pageCount ? 'z-dis' : '') + '">',
+					'<i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i>',
+				'</a>',
+				'<a href="javascript:" class="page-last ' + (page == pageCount ? 'z-dis' : '') + '">',
+					'<i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i>',
+				'</a>',
+				'<a href="javascript:" class="page-update">',
+					'<i class="df df-refresh"></i>',
+				'</a>',
+				'<p>显示 ' + (total ? l : 0) + ' - ' + r + '，共' + total + '条</p>',
+			'</div>'
+		].join(''));
+		
+		$page.find('a').click(function() {
+			if ($(this).hasClass('z-dis')) return;
+			if ($(this).hasClass('page-update')) {
+				grid.update();
+				return;
+			};
+			var page = $ipt.val();
+			if ($(this).hasClass('page-first')) {
+				page = 1;
+			} else if ($(this).hasClass('page-prev')) {
+				page = --page;
+			} else if ($(this).hasClass('page-next')) {
+				page = ++page;
+			} else if ($(this).hasClass('page-last')) {
+				page = pageCount;
+			};
+			grid.update(page);
+		});
+
+		$page.find('form').submit(function() {
+			var page = parseInt($ipt.val()) || 1;
+			page = page > pageCount ? pageCount : page;
+			grid.update(page);
+			return false;
+		});
+
+		var $ipt = $page.find('input').focus(function() {
+			$(this).select();
+		}).blur(function() {
+			$(this).val(grid.nowPage);
+		});
+		
+		return $page;
 	};
 
 	var initRowHeight = function() {
@@ -714,49 +773,18 @@ define([
 			this.root.body.left.tb.dom.html('');
 			this.root.body.right.tb.dom.html('');
 
-			var create = function (data) {
+			var create = function (data, collectData, total) {
 				me.pushRows(data);
+
 				if (me.countBar) {
-					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data));
-					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data));
-					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data));
+					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, collectData));
+					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, collectData));
+					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, collectData));
 					initRowHeight.call(me)
 				};
 
 				if (opt.pageBar) {
-					this.root.page.dom.html(createPage(page, opt.dataFrom.pageSize, me.total));
-					me.pageCount = this.root.page.dom.find('input').attr('maxnum');
-					this.root.page.dom.find('a').click(function() {
-						if ($(this).hasClass('z-dis')) return;
-						if ($(this).hasClass('page-update')) {
-							me.update();
-							return
-						};
-						var page = me.root.page.dom.find('input').val();
-						if ($(this).hasClass('page-first')) {
-							page = 1
-						} else if ($(this).hasClass('page-prev')) {
-							page = --page
-						} else if ($(this).hasClass('page-next')) {
-							page = ++page
-						} else if ($(this).hasClass('page-last')) {
-							page = me.root.page.dom.find('input').attr('maxnum')
-						}
-						me.update(parseInt(page))
-					});
-					this.root.page.dom.find('form').submit(function() {
-						var $ipt = me.root.page.dom.find('input');
-						var maxnum = $ipt.attr('maxnum');
-						var page = parseInt($ipt.val()) || 1;
-						page = page > maxnum ? maxnum : page;
-						me.update(parseInt(page));
-						return false
-					});
-					this.root.page.dom.find('input').focus(function() {
-						$(this).select()
-					}).blur(function() {
-						$(this).val(me.nowPage)
-					})
+					this.root.page.dom.html(createPage.call(me, page, total));
 				};
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
