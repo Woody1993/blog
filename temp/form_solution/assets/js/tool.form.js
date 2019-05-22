@@ -14,6 +14,10 @@
 			return true;
 		}
 
+		if (json.skip && json.skip()) {
+			return true;
+		}
+
 		switch(json.type) {
 		case 'empty':  // 空值校验
 			if (value === '' || value === undefined) return false;
@@ -35,12 +39,10 @@
 				}
 			}
 			return state;
-			break;
 
 		case 'length':  // 字符串长度校验
 			var str = value + '';
 			if (str.length < json.range[0] || str.length > json.range[1]) return false;
-			return true;
 			break;
 
 		case 'range':  // 数字范围校验
@@ -56,7 +58,6 @@
 
 		case 'function':  // 自定义方法判断
 			return json.fun(value) || false;
-			break;
 		}
 
 		return true;
@@ -240,7 +241,7 @@
 
 			!function loop(index) {
 				var name = arr[index];
-				if (opt.skip[name] && opt.skip[name]()) {
+				if (opt.skip[name] && opt.skip[name](json)) {
 					itemCallback(true);
 				} else {
 					checkItem.call(me, name, json[name], opt.rule[name], itemCallback);

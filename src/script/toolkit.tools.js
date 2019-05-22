@@ -105,12 +105,17 @@ define(function() {
 			 * 设置Cookie
 			 * @param {String} n cookie的名称
 			 * @param {String} v cookie的值（只允许字符串）
-			 * @param {Number} s cookie的保存时长（单位：秒）
+			 * @param {Number} s cookie的保存时长（单位：秒），默认为会话
+			 * @param {String} p cookie的所属路由
 			 */
-			set: function(n, v, s) {
-				var t = new Date();
-				t.setTime(t.getTime() + s*1000);
-				document.cookie = n + '=' + v + ';expires=' + t;
+			set: function(n, v, s, p) {
+				var t = '';
+				if (s) {
+					var d = new Date();
+					d.setTime(d.getTime() + s*1000);
+					t = ';expires=' + d;
+				};
+				document.cookie = n + '=' + v + t + ';path=' + (p || '/');
 			},
 	
 			/**
@@ -178,7 +183,7 @@ define(function() {
 				/**
 				 * 添加url参数，并获取添加参数后的url
 				 * @param {Object} data 需要添加的参数
-				 * @param {Boolean} cover 是否清除原有参数
+				 * @param {Boolean} clear 是否清除原有参数
 				 * @return {String} 添加参数后的url
 				 */
 				set: function(data, clear) {
@@ -265,7 +270,7 @@ define(function() {
 		/**
 		 * 遍历变量
 		 * @param {String}   obj 变量
-		 * @param {Function} fun 循环体函数，接受两个参数：单项序号及单项的值
+		 * @param {Function} fun 循环体函数，接受两个参数：单项的值及单项的键值
 		 */
 		each: function(obj, fun) {
 			for (var i in obj) {

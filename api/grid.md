@@ -4,17 +4,17 @@
 
 ## 开始使用
 
-我们首先需要引入数据表格模块，并使用改该模块提供的构造函数去创建表格对象：
+首先需要引入数据表格模块，并使用该模块提供的构造函数去创建表格对象：
 
 ```
 require('grid', function(grid) {
-    var tb = grid();
+    var tb = grid([options]);
 
     // tb即创建的表格对象
 });
 ```
 
-构造函数的参数为可选，具体可参考[基础配置](#gridOptions)。
+options为表格配置项，具体可参考[基础配置](#gridOptions)。
 
 <a id="gridOptions" />
 
@@ -86,3 +86,72 @@ dataFormatter | Function | - | 接收参数为当前单元格的数据，返回�
 titleFormatter | Function \| Boolean | true | 接收参数为当前单元格的数据，返回值将作为鼠标停留在该单元格上时的提示信息<br>false则无提示
 count | Object \| Boolean | false | 详见[数据列汇总配置](#colCount)
 sort | Object \| Boolean | false | 详见[数据列排序配置](#colSort)
+
+<a id="colInput" />
+
+## 单元格文本框配置
+
+配置项 | 类型 | 默认值 | 说明
+----- | ---- | ------| ----
+className | String | - | 文本框class名
+click | Function | - | 文本框click事件
+focus | Function | - | 文本框focus事件
+blur | Function | - | 文本框blur事件
+change | Function | - | 文本框change事件
+
+<a id="colCount" />
+
+## 数据列汇总配置
+
+配置项 | 类型 | 默认值 | 说明
+----- | ---- | ------| ----
+mode | String | number | 汇总方式<br>**number**：以数字求和方式汇总<br>**type**：以内容出现次数汇总
+itemFormatter | Function | - | 单行数据处理，返回值进行汇总
+totalFormatter | Function | - | 汇总数据处理，返回值展示在汇总行。如果以数组返回，则数组每项展示一行
+
+<a id="colSort" />
+
+## 数据列排序配置
+
+配置项 | 类型 | 默认值 | 说明
+----- | ---- | ------| ----
+type | String | desc,asc | 依次点击的排序方式<br>**desc,asc**：先倒序再顺序<br>**asc,desc**：先顺序再倒序<br>**desc**：只倒序<br>**asc**：只顺序
+param | String | - | 传递给接口的参数名，默认为列的name值
+
+## 表格对象方法
+
+表格对象提供了如下方法，以便于对表格及数据进行操作。
+
+方法名 | 参数 | 返回值 | 说明
+----- | ---- | ------| ----
+update | page | 表格对象 | 刷新指定页码数据<br>**page**：页码值，不传则刷新当前页
+resize | - | 表格对象 | 重置表格宽高
+pushRows | data | 表格对象 | 向表格最下面插入数据行<br>**data**：待插入数据，格式为json数组。例如：[{},{}]
+unshiftRows | data | 表格对象 | 向表格最上面插入数据行<br>**data**：待插入数据，同上
+insertRows | index, data | 表格对象 | 向表格指定位置插入数据行<br>**index**：目标位置索引值，从0开始<br>**data**：待插入数据，同上
+getRows | index | 数据行对象 | 获取当前页指定索引值的行<br>**index**：目标索引值，从0开始，获取多行可传数组。例如：[0,1,2]
+getAllRows | - | 数据行对象 | 获取当前页所有行
+getCrtRows | - | 数据行对象 | 获取当前页所有选中行
+getRowsBy | config | 数据行对象 | 获取当前页所有满足条件的行<br>**config**：获取行的条件。例如：{name: ['test1', 'test2'], type: '1'}表示获取name为test1或test2，并且type等于1的行
+getCrtData | - | 行数据 | 获取所有已选数据（包括非当前页）
+clearCrtData | - | 表格对象 | 清除所有已选数据
+setWidth | width | 表格对象 | 修改表格宽度<br>**width**：表格宽度，支持像素值、百分比或方法
+setHeight | height | 表格对象 | 修改表格高度<br>**height**：表格高度，支持像素值或方法
+
+## 数据行对象方法
+
+通过表格对象方法获取数据行对象后，可以通过以下方法去操作数据行对象。
+
+方法名 | 参数 | 返回值 | 说明
+----- | ---- | ------| ----
+moveTo | index | 数据行对象 | 将数据行移动至指定位置<br>**index**：目标索引值，从0开始
+remove | - | 数据行对象 | 删除数据行
+getIndex | - | 索引值 | 获取数据行索引值，多行则以数组方式返回
+getData | - | 行数据 | 获取数据行索数据，多行则以数组方式返回
+select | - | 数据行对象 | 选中数据行
+unselect | - | 数据行对象 | 取消选中数据行
+update | data | 数据行对象 | 刷新数据行的数据<br>**data**：多行则传入json数据，并与数据行一一对应进行刷新
+show | - | 数据行对象 | 显示数据行
+hide | - | 数据行对象 | 隐藏数据行
+each | function | 数据行对象 | 遍历数据行<br>**function**：遍历方法，接收两个参数，单个行对象已经序号值
+eq | number | 数据行对象 | 获取制定序号的行对象
