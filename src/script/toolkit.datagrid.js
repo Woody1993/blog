@@ -44,7 +44,7 @@
 define([
 	'jquery',
 	'tools',
-	'grid_css'
+	'datagrid_css'
 ], function($, tools) {
 	_scrollSize = (function() { //浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');

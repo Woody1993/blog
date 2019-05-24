@@ -7,10 +7,10 @@
 首先需要引入数据表格模块，并使用该模块提供的构造函数去创建表格对象：
 
 ```
-require('grid', function(grid) {
-    var tb = grid([options]);
+require('datagrid', function(datagrid) {
+    var grid = datagrid([options]);
 
-    // tb即创建的表格对象
+    // grid即创建的表格对象
 });
 ```
 

@@ -1,8 +1,8 @@
 require([
 	'jquery',
-	'grid'
-], function($, grid) {
-	tb = grid({
+	'datagrid'
+], function($, datagrid) {
+	grid = datagrid({
 		box: '#box',
 
 		dataFrom: {

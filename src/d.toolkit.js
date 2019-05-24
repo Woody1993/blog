@@ -40,8 +40,10 @@
 	var paths = {
 		reset: "css!style/reset",
 		jquery: "script/toolkit.jquery",
-		grid: "script/toolkit.grid",
-		grid_css: "css!style/toolkit.grid",
+		datagrid: "script/toolkit.datagrid",
+		datagrid_css: "css!style/toolkit.datagrid",
+		pagination: "script/toolkit.pagination",
+		pagination_css: "css!style/toolkit.pagination",
 		tools: "script/toolkit.tools"
 	};
 
