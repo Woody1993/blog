@@ -52,22 +52,6 @@
 .df-sort-desc:before {
     content: '\e75c';
 }
-
-.df-tri-up:before {
-    content: '\e803';
-}
-.df-tri-down:before {
-    content: '\e802';
-}
-.df-tri-left:before {
-    content: '\e800';
-}
-.df-tri-right:before {
-    content: '\e801';
-}
-.df-refresh:before {
-    content: '\e7ff';
-}
 /* end font */
 
 .d-grid, .d-grid * {
@@ -271,58 +255,9 @@
 }
 
 .d-grid-page {
-    position: relative;
-    height: 40px;
-    padding: 0 10px;
+    height: 43px;
     border-top: 1px solid #ddd;
-    line-height: 40px;
-    font-size: 12px;
-    color: #777;
     background: #f6f6f6;
-}
-.d-grid-page span {
-    display: inline-block;
-    height: 20px;
-    margin: 0 5px;
-    line-height: 20px;
-    vertical-align: middle;
-}
-.d-grid-page form {
-    display: inline-block;
-    width: 29px;
-    height: 20px;
-    margin: 0 5px;
-}
-.d-grid-page a {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    color: #1395ed;
-    text-align: center;
-    vertical-align: middle;
-}
-.d-grid-page a:hover {
-    color: #48b9ff;
-}
-.d-grid-page a.z-dis {
-    color: #a1a1a1;
-    cursor: not-allowed;
-}
-.d-grid-page a .df {
-    font-size: 16px;
-    vertical-align: -1px;
-}
-.d-grid-page input {
-    width: 27px;
-    height: 18px;
-    border: 1px solid #acb8c0;
-    text-align: center;
-    vertical-align: -1px;
-}
-.d-grid-page p {
-    float: right;
-    color: #444;
 }
 
 .d-grid-chk-all, .d-grid-chk {

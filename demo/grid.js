@@ -259,7 +259,7 @@ require([
 	});
 
 	$(window).resize(function() {
-		tb.resize();
+		grid.resize();
 	});
 
 	var newRowsIndex = 0;
@@ -289,6 +289,6 @@ require([
 			});
 		}
 
-		tb.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
+		grid.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
 	});
 });

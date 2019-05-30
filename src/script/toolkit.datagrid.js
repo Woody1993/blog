@@ -25,7 +25,6 @@
  * 						└ 获取指定序号行  eq √
  * 				优化排序及配置 √
  * 				优化汇总行及配置 √
- * 				优化分页栏，支持两种样式  [2]
  * 				系统列
  * 					├ 序号列 √
  * 					├ 子表格列  [3]
@@ -44,8 +43,9 @@
 define([
 	'jquery',
 	'tools',
-	'datagrid_css'
-], function($, tools) {
+	'datagrid_css',
+	'pagination'
+], function($, tools, pagination) {
 	_scrollSize = (function() { //浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');
 		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
@@ -81,10 +81,12 @@ define([
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
+				var total = opt.totalFormatter(msg);
+				grid.pageCount = Math.ceil(total / opt.pageSize);
 				fun(
 					opt.dataFormatter(msg),
 					opt.collectFormatter(msg),
-					opt.totalFormatter(msg)
+					total
 				);
 			}
 		});
@@ -528,73 +530,6 @@ define([
 		return $table;
 	};
 
-	var createPage = function(page, total) {
-		page = page ? page : 1;
-		var grid = this;
-		var pageSize = this.opt.dataFrom.pageSize,
-			pageCount = this.pageCount = Math.ceil(total / pageSize);
-		var l = (page - 1) * pageSize + 1;
-		var r = page * pageSize > total ? total : page * pageSize;
-		var $page = $([
-			'<div>',
-				'<a href="javascript:" class="page-first ' + (page == 1 ? 'z-dis' : '') + '">',
-					'<i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i>',
-				'</a>',
-				'<a href="javascript:" class="page-prev ' + (page == 1 ? 'z-dis' : '') + '">',
-					'<i class="df df-tri-left ' + (page == 1 ? '' : 'z-live') + '"></i>',
-				'</a>',
-				'<span>',
-					'第<form><input type="text" value="' + page + '"></form>页 ',
-					'共' + pageCount + '页',
-				'</span>',
-				'<a href="javascript:" class="page-next ' + (page == pageCount ? 'z-dis' : '') + '">',
-					'<i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i>',
-				'</a>',
-				'<a href="javascript:" class="page-last ' + (page == pageCount ? 'z-dis' : '') + '">',
-					'<i class="df df-tri-right ' + (page == pageCount ? '' : 'z-live') + '"></i>',
-				'</a>',
-				'<a href="javascript:" class="page-update">',
-					'<i class="df df-refresh"></i>',
-				'</a>',
-				'<p>显示 ' + (total ? l : 0) + ' - ' + r + '，共' + total + '条</p>',
-			'</div>'
-		].join(''));
-		
-		$page.find('a').click(function() {
-			if ($(this).hasClass('z-dis')) return;
-			if ($(this).hasClass('page-update')) {
-				grid.update();
-				return;
-			};
-			var page = $ipt.val();
-			if ($(this).hasClass('page-first')) {
-				page = 1;
-			} else if ($(this).hasClass('page-prev')) {
-				page = --page;
-			} else if ($(this).hasClass('page-next')) {
-				page = ++page;
-			} else if ($(this).hasClass('page-last')) {
-				page = pageCount;
-			};
-			grid.update(page);
-		});
-
-		$page.find('form').submit(function() {
-			var page = parseInt($ipt.val()) || 1;
-			page = page > pageCount ? pageCount : page;
-			grid.update(page);
-			return false;
-		});
-
-		var $ipt = $page.find('input').focus(function() {
-			$(this).select();
-		}).blur(function() {
-			$(this).val(grid.nowPage);
-		});
-		
-		return $page;
-	};
-
 	var initRowHeight = function() {
 		var $centerTr = this.root.body.main.dom.find('tr');
 		var $leftTr = this.root.body.left.dom.find('tr');
@@ -741,7 +676,7 @@ define([
 			}
 
 			this.opt = opt;
-			this.box = $(opt.box + ':first');
+			this.box = $(opt.box).eq(0);
 			this.width = opt.width;
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
@@ -756,6 +691,15 @@ define([
 			scrollEvent.call(this);
 			bindEvent(this);
 			this.resize();
+			if (opt.pageBar) {
+				this.pageBar = pagination({
+					box: this.root.page.dom,
+					pageSize: opt.dataFrom.pageSize,
+					callback: function(num) {
+						this.update(num);
+					}.bind(this)
+				});
+			};
 			this.update(1);
 			return this
 		},
@@ -764,9 +708,9 @@ define([
 			var me = this;
 			var opt = this.opt;
 			var maxnum = me.pageCount || 1;
-			page = page || parseInt(me.nowPage);
+			page = page || me.nowPage;
 			page = page > maxnum ? maxnum : page;
-			me.nowPage = page;
+			this.nowPage = page;
 			this.data = [];
 			this.root.body.main.tb.dom.html('');
 			this.root.body.left.tb.dom.html('');
@@ -782,8 +726,8 @@ define([
 					initRowHeight.call(me)
 				};
 
-				if (opt.pageBar) {
-					this.root.page.dom.html(createPage.call(me, page, total));
+				if (this.pageBar) {
+					this.pageBar.jump(page, total);
 				};
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
@@ -800,7 +744,6 @@ define([
 		},
 
 		resize: function() {
-			var opt = this.opt;
 			var $box = this.box;
 			var width = typeof this.width == 'function' ? this.width() : this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 100) / 100 : parseInt(this.width);
 			var height =  typeof this.height == 'function' ? this.height() : parseInt(this.height);
@@ -816,7 +759,7 @@ define([
 					this.sh = _scrollSize;
 				}
 			} else {
-				var h = height - this.root.head.dom.height() - 2 - (this.countBar ? this.root.foot.dom.height() : 0) - (opt.pageBar ? 41 : 0);
+				var h = height - this.root.head.dom.height() - 2 - (this.countBar ? this.root.foot.dom.height() : 0) - (this.root.page.dom.height() + 1);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
 

@@ -30,7 +30,7 @@
 				e = o[r];
 				break
 			}
-		return e || o[n]
+		return e || o[n];
 	};
 
 	var baseUrl = function() {
