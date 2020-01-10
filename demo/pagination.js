@@ -3,16 +3,11 @@ require([
 	'pagination'
 ], function($, pagination) {
 	page = pagination({
-		box: '#box',
+        box: '#box',
+        total: 2000,
 		pageSize: 20,
 		callback: function(num) {
-			updatePage(num);
+            $('#page').text(num);
 		}
-	});
-
-	function updatePage(num) {
-		page.jump(num, 200);
-	};
-
-	updatePage(1);
+    });
 });

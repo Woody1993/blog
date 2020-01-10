@@ -91,11 +91,11 @@ define([
         var page = this;
 		page.dom.prev.click(function() {
 			if ($(this).hasClass('z-dis')) return;
-			page.opt.callback(page.pageNum - 1);
+			page.jump(page.pageNum - 1);
 		});
 		page.dom.next.click(function() {
 			if ($(this).hasClass('z-dis')) return;
-			page.opt.callback(page.pageNum + 1);
+			page.jump(page.pageNum + 1);
         });
         page.dom.form.submit(function() {
             var n = parseInt(page.dom.ipt.val().trim());
@@ -127,7 +127,10 @@ define([
             initFrame.call(this);
 
             this.setTotal(opt.total);
-            opt.immediate && this.jump(1);
+
+            setTimeout(function() {
+                opt.immediate && this.jump(1);
+            }.bind(this));
 
 			return this;
 		},
