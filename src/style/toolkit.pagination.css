@@ -56,12 +56,7 @@
 .d-pagination .page-list {
     display: inline-block;
     vertical-align: top;
-    max-width: 170px;
     overflow: hidden
-}
-.d-pagination .page-list ul {
-    float: left;
-    white-space: nowrap;
 }
 .d-pagination .page-block {
     margin: 0 3px;

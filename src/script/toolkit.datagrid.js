@@ -406,7 +406,6 @@ define([
 
 		var insertTd = function(col) {
 			var name = col.name;
-			var value = data[name];
 
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px;text-align:' + col.align + '">');
 
@@ -457,7 +456,7 @@ define([
 					}
 				})(data[name]));
 	
-				data[name] = value == undefined ? '' : value;
+				data[name] = data[name] === undefined ? '' : data[name];
 			} else {
 				setVal();
 			}
@@ -530,30 +529,32 @@ define([
 		return $table;
 	};
 
-	var initRowHeight = function() {
-		var $centerTr = this.root.body.main.dom.find('tr');
-		var $leftTr = this.root.body.left.dom.find('tr');
-		var $rightTr = this.root.body.right.dom.find('tr');
-		for (var i = 0, len = $centerTr.length; i < len; i++) {
-			var hl = $leftTr.eq(i).height();
-			var hr = $rightTr.eq(i).height();
-			var h = $centerTr.eq(i).height();
-			h = h < (hl < hr ? hr : hl) ? (hl < hr ? hr : hl) : h;
-			$leftTr.eq(i).height(h);
-			$rightTr.eq(i).height(h);
-			$centerTr.eq(i).height(h)
-		}
-
-		var $centerTr = this.root.foot.main.dom.find('tr');
-		var $leftTr = this.root.foot.left.dom.find('tr');
-		var $rightTr = this.root.foot.right.dom.find('tr');
-		var hl = $leftTr.height();
-		var hr = $rightTr.height();
-		var h = $centerTr.height();
-		h = h < (hl < hr ? hr : hl) ? (hl < hr ? hr : hl) : h;
-		$leftTr.height(h);
-		$rightTr.height(h);
-		$centerTr.height(h)
+	var initRowHeight = function(count) {
+        if (count) {
+            var $centerTr = this.root.foot.main.dom.find('tr');
+            var $leftTr = this.root.foot.left.dom.find('tr');
+            var $rightTr = this.root.foot.right.dom.find('tr');
+            var hl = $leftTr.height();
+            var hr = $rightTr.height();
+            var h = $centerTr.height();
+            h = h < (hl < hr ? hr : hl) ? (hl < hr ? hr : hl) : h;
+            $leftTr.height(h);
+            $rightTr.height(h);
+            $centerTr.height(h)
+        } else {
+            var $centerTr = this.root.body.main.dom.find('tr');
+            var $leftTr = this.root.body.left.dom.find('tr');
+            var $rightTr = this.root.body.right.dom.find('tr');
+            for (var i = 0, len = $centerTr.length; i < len; i++) {
+                var hl = $leftTr.eq(i).height();
+                var hr = $rightTr.eq(i).height();
+                var h = $centerTr.eq(i).height();
+                h = h < (hl < hr ? hr : hl) ? (hl < hr ? hr : hl) : h;
+                $leftTr.eq(i).height(h);
+                $rightTr.eq(i).height(h);
+                $centerTr.eq(i).height(h)
+            }
+        }
 
 		this.resize()
 	};
@@ -694,17 +695,18 @@ define([
 			if (opt.pageBar) {
 				this.pageBar = pagination({
 					box: this.root.page.dom,
-					pageSize: opt.dataFrom.pageSize,
+                    pageSize: opt.dataFrom.pageSize,
+                    immediate: false,
 					callback: function(num) {
-						this.update(num);
+						this.update(num, true);
 					}.bind(this)
 				});
-			};
-			this.update(1);
+            };
+            this.update(1);
 			return this
 		},
 
-		update: function(page) {
+		update: function(page, manual) {
 			var me = this;
 			var opt = this.opt;
 			var maxnum = me.pageCount || 1;
@@ -723,11 +725,12 @@ define([
 					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, collectData));
 					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, collectData));
 					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, collectData));
-					initRowHeight.call(me)
+					initRowHeight.call(me, true)
 				};
 
 				if (this.pageBar) {
-					this.pageBar.jump(page, total);
+                    this.pageBar.setTotal(total);
+                    !manual && this.pageBar.jump(page, false);
 				};
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
@@ -745,8 +748,8 @@ define([
 
 		resize: function() {
 			var $box = this.box;
-			var width = typeof this.width == 'function' ? this.width() : this.width.indexOf('%') >= 0 ? $box.width() * (parseFloat(this.width) || 100) / 100 : parseInt(this.width);
-			var height =  typeof this.height == 'function' ? this.height() : parseInt(this.height);
+			var width = typeof this.width == 'function' ? this.width() : (typeof this.width == 'string' && this.width.indexOf('%') >= 0) ? $box.width() * (parseFloat(this.width) || 100) / 100 : parseInt(this.width);
+            var height =  typeof this.height == 'function' ? this.height() : this.height;
 
 			this.root.dom.width(width - 2);
 
@@ -759,6 +762,7 @@ define([
 					this.sh = _scrollSize;
 				}
 			} else {
+                height = parseInt(height);
 				var h = height - this.root.head.dom.height() - 2 - (this.countBar ? this.root.foot.dom.height() : 0) - (this.root.page.dom.height() + 1);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
@@ -804,27 +808,29 @@ define([
 			if (index >= total) index = -1;
 			else if (index < -total) index = 0;
 			if (total == 0 || index == -1) {
+                this.data = this.data.concat(data);
 				var fun = function(data) {
-					this.data.push(data);
 					this.root.body.main.tb.dom.append(createRow(this, this.colsModel.main, data));
 					this.root.body.left.tb.dom.append(createRow(this, this.colsModel.left, data));
 					this.root.body.right.tb.dom.append(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			} else {
+                index = index < 0 ? total + 1 + index : index;
 				var $trs = this.data[index].__$tr;
+                this.data.splice.apply(this.data, [index, 0].concat(data));
 				var fun = function(data) {
-					this.data.splice(index++, 0, data);
 					$($trs[0]).before(createRow(this, this.colsModel.main, data));
 					$($trs[1]).before(createRow(this, this.colsModel.left, data));
 					$($trs[2]).before(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			};
 
+			updateRowIndex.call(me);
+
 			data.forEach(function(item) {
 				fun(item);
-			});
-
-			updateRowIndex.call(me);
+            });
+            
 			initRowHeight.call(me);
 
 			if (me.crtData) {
@@ -841,7 +847,7 @@ define([
 			if ($imgs.length > 0) {
 				$imgs.load(function() {
 					initRowHeight.call(me);
-				})
+				});
 			}
 			return this;
 		},

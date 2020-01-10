@@ -7,7 +7,7 @@ require([
 
 		dataFrom: {
 			url: 'grid.json',
-			dataType: 'json',
+            dataType: 'json',
 			dataFormatter: function(data) {
 				return data.data;
 			},
@@ -86,8 +86,8 @@ require([
 						title: '头像',
 						name: 'icon',
 						width: 60,
-						dataFormatter: function(value) {
-							return '<div style="width:60px;height:60px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'" /></div>';
+						dataFormatter: function(value, row) {
+							return '<div style="width:60px;height:60px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'?t='+row.getIndex()+'" /></div>';
 						},
 						titleFormatter: false
 					}, {
@@ -102,26 +102,6 @@ require([
 						title: '电话',
 						name: 'phone',
 						width: 80
-					}
-				]
-			}, {
-				title: '配送信息',
-				subCol: [
-					{
-						title: '省份',
-						name: 'province',
-						width: 60
-					}, {
-						title: '城市',
-						name: 'city',
-						width: 60
-					}, {
-						title: '区县',
-						name: 'county',
-						width: 60
-					}, {
-						title: '详细地址',
-						name: 'address'
 					}
 				]
 			}, {
