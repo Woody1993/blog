@@ -127,12 +127,12 @@ define([
 			if (cols[i].frozen == 'left' && !leftSpaceObj)  {
 				leftSpaceObj = {
 					space: true,
-					width: -1
+					width: -15  // 单元格左右内边距 + 一倍边框宽度
 				};
 			} else if (cols[i].frozen == 'right' && !rightSpaceObj) {
 				rightSpaceObj = {
 					space: true,
-					width: -2
+					width: -16  // 单元格左右内边距 + 两倍边框宽度
 				};
 			}
 			if (leftSpaceObj && rightSpaceObj) break;
@@ -141,7 +141,6 @@ define([
 		rightSpaceObj && cols.push(rightSpaceObj);
 		
 		!function poll(cols, frozen) {
-			var width = 0;
 			for (var i in cols) {
 				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
@@ -150,7 +149,7 @@ define([
 						align: 'center',
 						frozen: 'none'
 					}, cols[i]);
-					cols[i].width = poll(cols[i].subCol, cols[i].frozen);
+					poll(cols[i].subCol, cols[i].frozen);
 				} else {
 					if (cols[i].sys == 'index') {
 						cols[i].name = '__index';
@@ -171,7 +170,8 @@ define([
 							return value
 						},
 						count: false,
-						sort: false
+						sort: false,
+						dom: []
 					}, cols[i]);
 
 					// 判断是不是占位列
@@ -212,16 +212,14 @@ define([
 								}
 							}, tools.typeof(cols[i].editable) == 'object' ? cols[i].editable : {});
 						}
-						cols[i].width = (parseInt(cols[i].width) || 100) + 14;
-						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += cols[i].width + 1;
-						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += cols[i].width + 1;
+						cols[i].width = parseInt(cols[i].width) || 100;
+						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += cols[i].width + 15;  // 单元格左右内边距 + 一倍边框宽度
+						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += cols[i].width + 15;  // 单元格左右内边距 + 一倍边框宽度
 					}
 
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
-				width += cols[i].width + 1;
 			}
-			return width - 1;
 		}(cols);
 		return json
 	};
@@ -301,7 +299,7 @@ define([
 		var grid = this;
 		var $hds = [$('<thead>'), $('<thead>'), $('<thead>')];
 
-		//设置排序按钮
+		// 设置排序按钮
 		var setSort = function($th, col) {
 			if (col.sort) {
 				$th.addClass('d-grid-sort-th').append('<i class="df df-sort"></i><i class="df df-sort-desc"></i><i class="df df-sort-asc"></i>').click(function() {
@@ -329,8 +327,26 @@ define([
 			}
 			return $th
 		};
+		
+		// 设置拖拽
+		var setDraw = function($th, col) {
+			col.dom.push($th.find('.th')[0]);
+			$('<div class="d-draw"></div>').appendTo($th).mousedown(function(e) {
+				if (e.button == 0) {
+					var move, sx = e.clientX, width;
+					$(document).mouseup(function() {
+						col.width = width;
+						$(this).unbind(move);
+					}).mousemove(function(e) {
+						move = e;
+						width = col.width + e.clientX - sx;
+						$(col.dom).width(width);
+					});
+				}
+			});
+		};
 
-		//获取跨列数
+		// 获取跨列数
 		var getColspan = function(col) {
 			var colspan = 0;
 			if (col.subCol) {
@@ -347,7 +363,7 @@ define([
 			cols[i].colspan = getColspan(cols[i])
 		};
 
-		//获取json深度
+		// 获取json深度
 		var getDepth = function(subCol) {
 			var maxDepth = 1;
 			for (var i in subCol) {
@@ -371,16 +387,17 @@ define([
 			for (var i = 0, len = cols.length; i < len; i++) {
 				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
-					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="width:' + cols[i].width + 'px;height:35px;line-height:35px;text-align:' + cols[i].align + ';"></div></th>');
-					$th.find('div').html(cols[i].title);
+					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="text-align:' + cols[i].align + ';"></div></th>');
+					$th.find('.th').html(cols[i].title);
 					for (var j in cols[i].subCol) {
 						subCol.push(cols[i].subCol[j])
 					}
 				} else {
 					var rowspan = maxDepth - cols[i].depth + 1;
 					var $th = $('<th colspan="1" rowspan="' + (maxDepth - cols[i].depth + 1) + '"><div class="th" style="width:' + cols[i].width + 'px;height:' + (rowspan * 35 + rowspan - 1) + 'px;line-height:' + (rowspan * 35 + rowspan - 1) + 'px;text-align:' + cols[i].align + ';"></div></th>');
-					$th.find('div').html(cols[i].title);
-					cols[i].sort && setSort($th.find('div'), cols[i])
+					$th.find('.th').html(cols[i].title);
+					cols[i].sort && setSort($th.find('.th'), cols[i]);
+					setDraw($th, cols[i]);
 				};
 
 				var frozen = cols[i].frozen;
@@ -409,6 +426,8 @@ define([
 
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px;text-align:' + col.align + '">');
 
+			col.dom.push($td.find('.td')[0]);
+
 			if (col.editable) {
 				var $ipt = $('<input class="d-grid-ipt" type="text" />').addClass(col.editable.className);
 				$td.children('div').html($ipt);
@@ -423,7 +442,7 @@ define([
 				});
 			};
 			if (col.overflow) {
-				$td.find('div').addClass('z-hide-txt');
+				$td.find('.td').addClass('z-hide-txt');
 			}
 			$tr.append($td);
 
@@ -496,6 +515,7 @@ define([
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px">');
+			col.dom.push($td.find('.td')[0]);
 			if (col.count) {
 				var count = (function(name) {
 						switch (col.count.mode) {
