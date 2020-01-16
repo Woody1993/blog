@@ -31,7 +31,7 @@
  * 					└ 多级列  [3]
  * 				子表格（通过子表格列展开）  [3]
  * 				多级表格（通过多级列展开）  [3]
- * 				列宽拖拽调整  [5]
+ * 				列宽拖拽调整 √
  * 				整列隐藏  [5]
  * 				整列拖拽排序  [5]
  * 				保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
@@ -58,7 +58,7 @@ define([
 
 	var _eventType = ['click', 'focus', 'blur', 'change'];  // 支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__selected', '__hide'];  // 行数据保留字段
+	var _sysColName = ['__$tr', '__index', '__select', '__hide'];  // 行数据保留字段
 
 	var getData = function(grid, page, fun) {
 		var param = {};
@@ -103,9 +103,9 @@ define([
 		if (opt.check) {
 			if (opt.check.callType != 2) {
 				opt.colModel.unshift({
+                    sys: 'select',
 					width: 35,
 					title: opt.check.multiple && opt.check.checkAll ? $('<input type="checkbox" class="d-grid-chk-all" />') : '',
-					name: '__selected',
 					frozen: 'left',
 					align: 'center',
 					dataFormatter: function(data, rh) {
@@ -118,31 +118,77 @@ define([
 					}
 				})
 			}
-		};
+        };
+        
+        function colFmt(col) {
+            col = $.extend({
+                title: '',
+                name: '',
+                width: 100,
+                frozen: 'none',
+                align: 'left',
+                overflow: true,
+                editable: false,
+                iptClassName: '',
+                dataFormatter: function(value) {
+                    return value;
+                },
+                titleFormatter: function(value) {
+                    return value;
+                },
+                count: false,
+                sort: false,
+                dom: []
+            }, col);
 
-		var cols = opt.colModel;
+            if (col.sys) col.name = '__' + col.sys;
+
+            if (col.count) {
+                grid.countBar = true;
+                col.count = $.extend({
+                    mode: 'number',  // number || type
+                    itemFormatter: function(value) {
+                        return value;
+                    },
+                    totalFormatter: function(value) {
+                        return value;
+                    }
+                }, tools.typeof(col.count) == 'object' ? col.count : {});
+            }
+
+            if (col.sort) {
+                col.sort = $.extend({
+                    type: 'desc,asc',  // desc,asc || asc,desc || desc || asc
+                    param: col.name
+                }, tools.typeof(col.sort) == 'object' ? col.sort : {});
+            }
+
+            if (col.editable) {
+                col.editable = $.extend({
+                    className: '',
+                    click: function() {
+                        console.log('click');
+                    },
+                    focus: function() {
+                        console.log('focus')
+                    },
+                    blur: function() {
+                        console.log('blur');
+                    },
+                    change: function() {
+                        console.log('change');
+                    }
+                }, tools.typeof(col.editable) == 'object' ? col.editable : {});
+            }
+
+            col.width = parseInt(col.width) || 100;
+
+            return col;
+        };
 
 		var leftSpaceObj, rightSpaceObj;
-		for (var i in cols) {
-			if (cols[i].frozen == 'left' && !leftSpaceObj)  {
-				leftSpaceObj = {
-					space: true,
-					width: -15  // 单元格左右内边距 + 一倍边框宽度
-				};
-			} else if (cols[i].frozen == 'right' && !rightSpaceObj) {
-				rightSpaceObj = {
-					space: true,
-					width: -16  // 单元格左右内边距 + 两倍边框宽度
-				};
-			}
-			if (leftSpaceObj && rightSpaceObj) break;
-		}
-		leftSpaceObj && cols.unshift(leftSpaceObj);
-		rightSpaceObj && cols.push(rightSpaceObj);
-		
-		!function poll(cols, frozen) {
+		!function poll(cols, parentFrozen) {
 			for (var i in cols) {
-				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
 					cols[i] = $.extend({
 						title: '',
@@ -151,76 +197,52 @@ define([
 					}, cols[i]);
 					poll(cols[i].subCol, cols[i].frozen);
 				} else {
-					if (cols[i].sys == 'index') {
-						cols[i].name = '__index';
-					}
-					cols[i] = $.extend({
-						title: '',
-						name: '',
-						width: 100,
-						frozen: 'none',
-						align: 'left',
-						overflow: true,
-						editable: false,
-						iptClassName: '',
-						dataFormatter: function(value) {
-							return value
-						},
-						titleFormatter: function(value) {
-							return value
-						},
-						count: false,
-						sort: false,
-						dom: []
-					}, cols[i]);
+					cols[i] = colFmt(cols[i]);
+                    
+                    if (parentFrozen) cols[i].frozen = parentFrozen;
 
-					// 判断是不是占位列
-					if (!cols[i].space) {
-						if (frozen) cols[i].frozen = frozen;
-						if (cols[i].count) {
-							grid.countBar = true;
-							cols[i].count = $.extend({
-								mode: 'number',  // number || type
-								itemFormatter: function(value) {
-									return value;
-								},
-								totalFormatter: function(value) {
-									return value;
-								}
-							}, tools.typeof(cols[i].count) == 'object' ? cols[i].count : {});
-						}
-						if (cols[i].sort) {
-							cols[i].sort = $.extend({
-								type: 'desc,asc',  // desc,asc || asc,desc || desc || asc
-								param: cols[i].name
-							}, tools.typeof(cols[i].sort) == 'object' ? cols[i].sort : {});
-						}
-						if (cols[i].editable) {
-							cols[i].editable = $.extend({
-								className: '',
-								click: function() {
-									console.log('click');
-								},
-								focus: function() {
-									console.log('focus')
-								},
-								blur: function() {
-									console.log('blur');
-								},
-								change: function() {
-									console.log('change');
-								}
-							}, tools.typeof(cols[i].editable) == 'object' ? cols[i].editable : {});
-						}
-						cols[i].width = parseInt(cols[i].width) || 100;
-						if (leftSpaceObj && cols[i].frozen == 'left') cols[0].width += cols[i].width + 15;  // 单元格左右内边距 + 一倍边框宽度
-						else if (rightSpaceObj && cols[i].frozen == 'right') cols[cols.length-1].width += cols[i].width + 15;  // 单元格左右内边距 + 一倍边框宽度
-					}
+                    if (cols[i].frozen == 'left' && !leftSpaceObj)  {
+                        leftSpaceObj = colFmt({
+                            updateWidth: function() {
+                                var w = -15;  // 单元格左右内边距 + 一倍边框宽度
+                                json.left.forEach(function(item) {
+                                    w += item.width + 15;
+                                });
+                                this.width = w;
+                                this.dom.length && $(this.dom).width(w);
+                                return this;
+                            }
+                        });
+                    } else if (cols[i].frozen == 'right' && !rightSpaceObj) {
+                        rightSpaceObj = colFmt({
+                            updateWidth: function() {
+                                var w = -16;  // 单元格左右内边距 + 两倍边框宽度
+                                json.right.forEach(function(item) {
+                                    w += item.width + 15;
+                                });
+                                this.width = w;
+                                this.dom.length && $(this.dom).width(w);
+                                return this;
+                            }
+                        });
+                    }
 
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
 			}
-		}(cols);
+        }(opt.colModel);
+
+        leftSpaceObj && (
+            leftSpaceObj.updateWidth(),
+            json.main.unshift(leftSpaceObj),
+            opt.colModel.unshift(leftSpaceObj)
+        );
+        rightSpaceObj && (
+            rightSpaceObj.updateWidth(),
+            json.main.push(rightSpaceObj),
+            opt.colModel.push(rightSpaceObj)
+        );
+
 		return json
 	};
 
@@ -330,20 +352,50 @@ define([
 		
 		// 设置拖拽
 		var setDraw = function($th, col) {
-			col.dom.push($th.find('.th')[0]);
+            col.dom.push($th.find('.th')[0]);
+
+            if (col.sys == 'space') return;
+            
+            col.initWidth = col.width;
 			$('<div class="d-draw"></div>').appendTo($th).mousedown(function(e) {
 				if (e.button == 0) {
+                    $(grid.root.head.dom).addClass('z-draw');
 					var move, sx = e.clientX, width;
-					$(document).mouseup(function() {
-						col.width = width;
+					$(document).mouseup(function(e) {
+                        $(grid.root.head.dom).removeClass('z-draw');
+                        col.width = width;
+
+                        if (col.frozen == 'right') {
+                            cols[cols.length-1].updateWidth();
+                        } else if (col.frozen == 'left') {
+                            cols[0].updateWidth();
+                        }
+
+                        grid.resize();
+
 						$(this).unbind(move);
+						$(this).unbind(e);
 					}).mousemove(function(e) {
-						move = e;
-						width = col.width + e.clientX - sx;
-						$(col.dom).width(width);
+                        move = e;
+                        if (col.frozen == 'right') {
+                            width = col.width - e.clientX + sx;
+                        } else {
+                            width = col.width + e.clientX - sx;
+                        }
+                        width = width < 20 ? 20 : width;
+                        $(col.dom).width(width);
 					});
 				}
-			});
+			}).dblclick(function() {
+                col.width = col.initWidth;
+                $(col.dom).width(col.width);
+
+                if (col.frozen == 'right') {
+                    cols[cols.length-1].updateWidth();
+                } else if (col.frozen == 'left') {
+                    cols[0].updateWidth();
+                }
+            });
 		};
 
 		// 获取跨列数
@@ -385,7 +437,6 @@ define([
 				maxDepth = maxDepth > cols[i].depth ? maxDepth : cols[i].depth
 			};
 			for (var i = 0, len = cols.length; i < len; i++) {
-				if (cols[i].sifter && cols[i].sifter() === false) continue;
 				if (cols[i].subCol) {
 					var $th = $('<th colspan="' + cols[i].colspan + '" rowspan="1"><div class="th" style="text-align:' + cols[i].align + ';"></div></th>');
 					$th.find('.th').html(cols[i].title);
@@ -460,9 +511,12 @@ define([
 				};
 			}
 
-			// 如果使用了数据则进行双向绑定
+            // 如果使用了数据则进行双向绑定
 			if (name) {
+                data[name] = data[name] !== undefined ? data[name] : '';
 				Object.defineProperty(data, name, (function(v) {
+                    setVal(v);
+
 					return {
 						get: function() {
 							return v;
@@ -474,8 +528,6 @@ define([
 						}
 					}
 				})(data[name]));
-	
-				data[name] = data[name] === undefined ? '' : data[name];
 			} else {
 				setVal();
 			}
@@ -897,7 +949,7 @@ define([
 		getCrtRows: function() {
 			var a = [];
 			for (var i in this.data) {
-				if (this.data[i].__selected) {
+				if (this.data[i].__select) {
 					a.push(this.data[i]);	
 				}
 			}
@@ -1047,7 +1099,7 @@ define([
 				}
 
 				$(this.rows[0].__$tr).addClass('z-crt');
-				this.rows[0].__selected = true;
+				this.rows[0].__select = true;
 
 				var data = clearRowsData(this.getData());
 				if (grid.crtData && data[grid.crtData.key] !== undefined && grid.crtData.index.indexOf(data[grid.crtData.key]) == -1) {
@@ -1065,7 +1117,7 @@ define([
 			this.each(function() {
 				if (!$(this.rows[0].__$tr).hasClass('z-crt')) return;
 				$(this.rows[0].__$tr).removeClass('z-crt');
-				this.rows[0].__selected = false;
+				this.rows[0].__select = false;
 
 				var data = clearRowsData(this.getData());
 				if (grid.crtData && grid.crtData.index.indexOf(data[grid.crtData.key]) > -1) {

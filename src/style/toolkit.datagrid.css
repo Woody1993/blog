@@ -141,13 +141,21 @@
     border-right: 0;
 }
 
+.d-grid-head.z-draw {
+    cursor: col-resize;
+    user-select: none;
+}
 .d-grid-head .d-draw {
     position: absolute;
     right: 0;
     top: 0;
     bottom: 0;
-    width: 5px;
+    width: 7px;
     cursor: col-resize;
+}
+.d-grid-head .d-froze-right .d-draw {
+    left: 0;
+    right: initial;
 }
 
 .d-grid-head div.d-grid-sort-th {

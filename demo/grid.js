@@ -66,11 +66,6 @@ require([
 				name: 'status',
 				width: 60
 			}, {
-				title: '不显示',
-				sifter: function() {
-					return false;
-				}
-			}, {
 				title: '订单号',
 				frozen: 'left',
 				name: 'orderNum',
