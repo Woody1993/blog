@@ -144,7 +144,7 @@ define([
             if (col.sys) col.name = '__' + col.sys;
 
             if (col.count) {
-                grid.countBar = true;
+                opt.countBar = true;
                 col.count = $.extend({
                     mode: 'number',  // number || type
                     itemFormatter: function(value) {
@@ -249,53 +249,25 @@ define([
 	var initFrame = function(grid) {
 		var opt = grid.opt;
 
-		grid.root = {
-			dom: $('<div class="d-grid"></div>')
-		};
-		grid.root.head = {
-			dom: $('<div class="d-grid-head"></div>').appendTo(grid.root.dom)
-		};
-		grid.root.head.left = {
-			dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.head.dom)
-		};
-		grid.root.head.right = {
-			dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.head.dom)
-		};
-		grid.root.head.main = {
-			dom: $('<div class="d-main"></div>').appendTo(grid.root.head.dom)
-		};
-		grid.root.body = {
-			dom: $('<div class="d-grid-body"></div>').appendTo(grid.root.dom)
-		};
-		grid.root.body.left = {
-			dom: $('<div class="d-froze-left">').appendTo(grid.root.body.dom)
-		};
-		grid.root.body.right = {
-			dom: $('<div class="d-froze-right">').appendTo(grid.root.body.dom)
-		};
-		grid.root.body.main = {
-			dom: $('<div class="d-main"></div>').appendTo(grid.root.body.dom)
-		};
+		grid.root = {dom: $('<div class="d-grid"></div>')};
+		grid.root.head = {dom: $('<div class="d-grid-head"></div>').appendTo(grid.root.dom)};
+		grid.root.head.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.head.dom)};
+		grid.root.head.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.head.dom)};
+		grid.root.head.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.head.dom)};
+		grid.root.body = {dom: $('<div class="d-grid-body"></div>').appendTo(grid.root.dom)};
+		grid.root.body.left = {dom: $('<div class="d-froze-left">').appendTo(grid.root.body.dom)};
+		grid.root.body.right = {dom: $('<div class="d-froze-right">').appendTo(grid.root.body.dom)};
+		grid.root.body.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.body.dom)};
 
-		if (grid.countBar) {
-			grid.root.foot = {
-				dom: $('<div class="d-grid-foot"></div>').appendTo(grid.root.dom)
-			};
-			grid.root.foot.left = {
-				dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')
-			};
-			grid.root.foot.right = {
-				dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')
-			};
-			grid.root.foot.main = {
-				dom: $('<div class="d-main"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')
-			};
+		if (grid.opt.countBar) {
+			grid.root.foot = {dom: $('<div class="d-grid-foot"></div>').appendTo(grid.root.dom)};
+			grid.root.foot.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
+			grid.root.foot.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
+			grid.root.foot.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
 		};
 
 		if (opt.pageBar) {
-			grid.root.page = {
-				dom: $('<div class="d-grid-page"></div>').appendTo(grid.root.dom)
-			};
+			grid.root.page = {dom: $('<div class="d-grid-page"></div>').appendTo(grid.root.dom)};
 		}
 
 		var $headObjs = createThead.call(grid, grid.opt.colModel);
@@ -304,15 +276,9 @@ define([
 		grid.root.head.right.dom.append($headObjs[2]);
 
 
-		grid.root.body.main.tb = {
-			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.main.dom)
-		};
-		grid.root.body.left.tb = {
-			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.left.dom)
-		};
-		grid.root.body.right.tb = {
-			dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.right.dom)
-		};
+		grid.root.body.main.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.main.dom)};
+		grid.root.body.left.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.left.dom)};
+		grid.root.body.right.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.right.dom)};
 
 		grid.box.html(grid.root.dom);
 	};
@@ -679,7 +645,7 @@ define([
 
 	var frozeShadow = tools.throttle(function () {
 		var sl = this.root.body.main.dom.scrollLeft();
-		var maxSl = this.root.body.main.tb.dom.width()
+		var maxSl = this.root.body.main.table.dom.width()
 					- this.root.body.main.dom.width()
 					+ this.sw;
 
@@ -762,8 +728,8 @@ define([
 			}
 			initFrame(this);
 			scrollEvent.call(this);
-			bindEvent(this);
-			this.resize();
+            bindEvent(this);
+
 			if (opt.pageBar) {
 				this.pageBar = pagination({
 					box: this.root.page.dom,
@@ -774,6 +740,8 @@ define([
 					}.bind(this)
 				});
             };
+
+			this.resize();
             this.update(1);
 			return this
 		},
@@ -786,14 +754,14 @@ define([
 			page = page > maxnum ? maxnum : page;
 			this.nowPage = page;
 			this.data = [];
-			this.root.body.main.tb.dom.html('');
-			this.root.body.left.tb.dom.html('');
-			this.root.body.right.tb.dom.html('');
+			this.root.body.main.table.dom.html('');
+			this.root.body.left.table.dom.html('');
+			this.root.body.right.table.dom.html('');
 
 			var create = function (data, collectData, total) {
 				me.pushRows(data);
 
-				if (me.countBar) {
+				if (opt.countBar) {
 					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, collectData));
 					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, collectData));
 					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, collectData));
@@ -830,23 +798,23 @@ define([
 				this.root.dom.height('auto');
 				this.root.body.dom.height('auto');
 
-				if (this.root.body.main.tb.dom.width() > this.root.body.main.dom.width()) {
+				if (this.root.body.main.table.dom.width() > this.root.body.main.dom.width()) {
 					this.sh = _scrollSize;
 				}
 			} else {
                 height = parseInt(height);
-				var h = height - this.root.head.dom.height() - 2 - (this.countBar ? this.root.foot.dom.height() : 0) - (this.root.page.dom.height() + 1);
+				var h = height - this.root.head.dom.height() - 2 - (this.opt.countBar ? this.root.foot.dom.height() : 0) - (this.root.page.dom.height() + 1);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
 
-				if (this.root.body.main.tb.dom.height() > this.root.body.main.dom.height()) {
+				if (this.root.body.main.table.dom.height() > this.root.body.main.dom.height()) {
 					this.sw = _scrollSize;
 				}
 
-				if (this.root.body.main.tb.dom.width() + this.sw > this.root.body.main.dom.width()) {
+				if (this.root.body.main.table.dom.width() + this.sw > this.root.body.main.dom.width()) {
 					this.sh = _scrollSize;
 
-					if (this.root.body.main.tb.dom.height() + this.sh > this.root.body.main.dom.height()) {
+					if (this.root.body.main.table.dom.height() + this.sh > this.root.body.main.dom.height()) {
 						this.sw = _scrollSize;
 					}
 				}
@@ -882,9 +850,9 @@ define([
 			if (total == 0 || index == -1) {
                 this.data = this.data.concat(data);
 				var fun = function(data) {
-					this.root.body.main.tb.dom.append(createRow(this, this.colsModel.main, data));
-					this.root.body.left.tb.dom.append(createRow(this, this.colsModel.left, data));
-					this.root.body.right.tb.dom.append(createRow(this, this.colsModel.right, data));
+					this.root.body.main.table.dom.append(createRow(this, this.colsModel.main, data));
+					this.root.body.left.table.dom.append(createRow(this, this.colsModel.left, data));
+					this.root.body.right.table.dom.append(createRow(this, this.colsModel.right, data));
 				}.bind(this);
 			} else {
                 index = index < 0 ? total + 1 + index : index;
@@ -1041,9 +1009,9 @@ define([
 			if (total == 0 || index == -1) {
 				var fun = function(data) {
 					this.data.push(data);
-					this.root.body.main.tb.dom.append(data.__$tr[0]);
-					this.root.body.left.tb.dom.append(data.__$tr[1]);
-					this.root.body.right.tb.dom.append(data.__$tr[2]);
+					this.root.body.main.table.dom.append(data.__$tr[0]);
+					this.root.body.left.table.dom.append(data.__$tr[1]);
+					this.root.body.right.table.dom.append(data.__$tr[2]);
 				}.bind(this.grid);
 			} else {
 				var $trs = this.grid.data[index].__$tr;
