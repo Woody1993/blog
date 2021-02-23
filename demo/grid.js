@@ -1,7 +1,8 @@
 require([
 	'jquery',
-	'datagrid'
-], function($, datagrid) {
+	'datagrid',
+    'shortcuts'
+], function($, datagrid, shortcuts) {
 	grid = datagrid({
 		box: '#box',
 
@@ -26,15 +27,17 @@ require([
 		},
 
 		event: {
-			click: function(data) {
-				console.log('click:', data);
+			click: function(rh) {
+				// console.log('click:', rh);
 			},
-			beforeSelect: function(data) {
-				console.log('beforeSelect:', data);
-				if (data.status == '待付款2') return false;
+			beforeSelect: function(rh) {
+				// console.log('beforeSelect:', rh);
+				if (rh.getData().status == '待付款2') return false;
 			},
-			select: function(data) {
-				console.log('select:', data);
+			select: function(rh) {
+                // console.log('select:', rh);
+                $ipts = rh.find('input[type="text"]');
+                focusIpt();
 			}
 		},
 
@@ -42,7 +45,9 @@ require([
 			multiple: true,
 			checkAll: true,
 			callType: 0
-		},
+        },
+        
+        shortcuts: ['up', 'down', 'pageup', 'pagedown'],
 
 		colModel: [
 			{
@@ -73,7 +78,8 @@ require([
 				sort: {
 					type: 'desc,asc',
 					param: 'sortOrderNum'
-				}
+				},
+                editable: true
 			}, {
 				title: '买家信息',
 				subCol: [
@@ -96,7 +102,8 @@ require([
 					}, {
 						title: '电话',
 						name: 'phone',
-						width: 80
+                        width: 80,
+                        editable: true
 					}
 				]
 			}, {
@@ -187,16 +194,16 @@ require([
 				editable: {
 					className: 'j-test j-test2',
 					click: function() {
-						console.log('click');
+						// console.log('click');
 					},
 					focus: function() {
-						console.log('focus')
+						// console.log('focus')
 					},
 					blur: function() {
-						console.log('blur');
+						// console.log('blur');
 					},
 					change: function() {
-						console.log('change');
+						// console.log('change');
 					}
 				}
 			}, {
@@ -265,5 +272,22 @@ require([
 		}
 
 		grid.insertRows((parseInt($('#insertIndex').val()) || 0), arr);
-	});
+    });
+
+    var $ipts, focusIndex = 0;
+    shortcuts.config({
+        beforeInput: function(e) {
+            return !['up', 'down', 'left', 'right', 'pageup', 'pagedown'].includes(e.key);
+        }
+    }).listener(['left', 'right'], function(e) {
+        if ($ipts) {
+            focusIndex += e.key == 'left' ? -1 : 1;
+            focusIpt();
+        }
+    });
+
+    function focusIpt() {
+        focusIndex = focusIndex < 0 ? 0 : focusIndex > $ipts.length-1 ? $ipts.length-1 : focusIndex;
+        $ipts.eq(focusIndex).select();
+    }
 });

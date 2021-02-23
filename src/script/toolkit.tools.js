@@ -73,7 +73,7 @@ define(function() {
 		/**
 		 * 获取变量的类型
 		 * @param {*} v      变量
-		 * @returns {string} 变量类型（number|NaN|boolean|array|object|function|undefined）
+		 * @returns {string} 变量类型（number | NaN | boolean | array | object | function | undefined）
 		 */
 		typeof: function(v) {
 			switch(typeof v) {

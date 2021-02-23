@@ -38,15 +38,22 @@
  * 					├ 获取已选数据  getCrtData √
  * 					└ 清除已选数据  clearCrtData √
  *              表格搜索功能  [4]
+ *              快捷键 √
+ * 					├ up  选中上一行 √
+ * 					├ down  选中下一行 √
+ * 					├ pageup  上一页 √
+ * 					└ pagedown  下一页 √
  * Date: 2018-11-01
 **/
+
 define([
 	'jquery',
 	'tools',
 	'datagrid_css',
-	'pagination'
-], function($, tools, pagination) {
-	_scrollSize = (function() { //浏览器滚动条大小
+    'pagination',
+    'shortcuts'
+], function($, tools, pagination, shortcuts) {
+	var _scrollSize = (function() {  // 浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');
 		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
 		noScroll = document.body.appendChild(oDiv).clientWidth;
@@ -503,7 +510,7 @@ define([
 		};
 
 		opt.event.click && $tr.click(function() {
-			opt.event.click(rh.getData());
+			opt.event.click(rh);
 		});
 		if (opt.check && opt.check.callType != 1) {
 			$tr.click(function() {
@@ -685,7 +692,8 @@ define([
 				event: {},
 				colModel: [],
 				check: false,
-				pageBar: true
+                pageBar: true,
+                shortcuts: []
 			}, opt || {});
 
 			opt.dataFrom = $.extend({
@@ -743,6 +751,8 @@ define([
 
 			this.resize();
             this.update(1);
+
+            focusGrid = this;
 			return this
 		},
 
@@ -1056,11 +1066,12 @@ define([
 		},
 
 		select: function() {
-			var grid = this.grid;
+            var grid = this.grid;
+            var focusRow;
 			this.each(function() {
 				if ($(this.rows[0].__$tr).hasClass('z-crt')) return;
 
-				if (grid.opt.event.beforeSelect && grid.opt.event.beforeSelect(this.getData()) === false) return;
+				if (grid.opt.event.beforeSelect && grid.opt.event.beforeSelect(this) === false) return;
 				
 				if (!grid.opt.check.multiple) {
 					grid.getCrtRows().unselect();
@@ -1075,8 +1086,23 @@ define([
 					grid.crtData.index.push(data[grid.crtData.key]);
 				}
 
-				grid.opt.event.select && grid.opt.event.select(data);
-			});
+                grid.opt.event.select && grid.opt.event.select(this);
+                
+                !focusRow && (focusRow = this);
+            });
+            
+            if (focusRow) {
+                var scrollTop = this.grid.root.body.main.dom[0].scrollTop,
+                    boxHeight = $(this.grid.root.body.main.dom).height(),
+                    offsetTop = this.rows[0].__$tr[0].offsetTop,
+                    rowHeight = $(this.rows[0].__$tr[0]).innerHeight();
+
+                if (offsetTop < scrollTop) {
+                    $(this.grid.root.body.main.dom).scrollTop(offsetTop);
+                } else if (offsetTop + rowHeight - scrollTop > boxHeight) {
+                    $(this.grid.root.body.main.dom).scrollTop(offsetTop - (boxHeight - rowHeight) + this.grid.sh);
+                }
+            }
 			return this;
 		},
 
@@ -1095,7 +1121,18 @@ define([
 				}
 			});
 			return this;
-		},
+        },
+        
+        isSelected: function() {
+            var selected = true;
+            this.each(function() {
+                if (!this.rows[0].__select) {
+                    selected = false;
+                    return false;
+                }
+            });
+            return selected;
+        },
 
 		update: function(data) {
 			tools.typeof(data) == 'object' && (data = [data]);
@@ -1139,8 +1176,50 @@ define([
 		eq: function(n) {
 			if (n >= this.length || n < -this.length) return;
 			return new rowsHandle(this.grid, [this.rows[n < 0 ? this.length + n : n]]);
-		}
-	};
+        },
+        
+        find: function(selector) {
+            var $tr = [];
+            this.each(function() {
+                $tr = $tr.concat([this.rows[0].__$tr[1], this.rows[0].__$tr[0], this.rows[0].__$tr[2]]);
+            });
+            return $($tr).find(selector);
+        }
+    };
+    
+    var focusGrid;
+    shortcuts.config({
+        beforeKeydown: function(e) {
+            return !['up', 'down', 'pageup', 'down'].includes(e.key) || (focusGrid && focusGrid.opt.shortcuts.includes(e.key));
+        }
+    }).listener(['up', 'down'], function(e) {
+        var crtRow = focusGrid.getCrtRows();
+        var index = -1;
+
+        if (crtRow.length) {
+            index = e.key == 'up' ? crtRow.eq(0).getIndex() : crtRow.eq(-1).getIndex();
+        }
+
+        while(true) {
+            e.key == 'up' ? --index : ++index;
+            if (index < 0) {
+                index = grid.getAllRows().length - 1;
+            } else if (index >= grid.getAllRows().length) {
+                index = 0;
+            }
+            var nextRow = grid.getRows(index);
+            if (nextRow.length) {
+                grid.clearCrtData();
+                if (nextRow.select().isSelected()) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+    }).listener(['pageup', 'pagedown'], function(e) {
+        focusGrid.update(focusGrid.nowPage + (e.key == 'pageup' ? -1 : 1));
+    });
 
 	return main;
 });

@@ -44,7 +44,8 @@
 		datagrid_css: "css!style/toolkit.datagrid",
 		pagination: "script/toolkit.pagination",
 		pagination_css: "css!style/toolkit.pagination",
-		tools: "script/toolkit.tools"
+		tools: "script/toolkit.tools",
+		shortcuts: "script/toolkit.shortcuts"
 	};
 
 	var absPath = function(u) {

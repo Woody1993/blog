@@ -29,6 +29,7 @@ height | Number \| String \| Function | auto | 表格的高度<br>支持auto（�
 event | Object | - | 详见[数据行事件绑定](#rowEvent)
 check | Object | - | 详见[数据行选中规则](#rowCheck)
 colModel | Array | - | 详见[数据列配置](#colModel)
+shortcuts | Array | - | 启用的表格快捷键
 
 <a id="dataFormOptions" />
 
@@ -150,8 +151,10 @@ getIndex | - | 索引值 | 获取数据行索引值，多行则以数组方式�
 getData | - | 行数据 | 获取数据行索数据，多行则以数组方式返回
 select | - | 数据行对象 | 选中数据行
 unselect | - | 数据行对象 | 取消选中数据行
+isSelected | - | boolean | 判断行是否选中，多行时全部选中才为true
 update | data | 数据行对象 | 刷新数据行的数据<br>**data**：多行则传入json数据，并与数据行一一对应进行刷新
 show | - | 数据行对象 | 显示数据行
 hide | - | 数据行对象 | 隐藏数据行
 each | function | 数据行对象 | 遍历数据行<br>**function**：遍历方法，接收两个参数，单个行对象已经序号值
-eq | number | 数据行对象 | 获取制定序号的行对象
+eq | number | 数据行对象 | 获取指定序号的行对象
+find | selector | jquery对象 | 通过选择器获取行内元素
