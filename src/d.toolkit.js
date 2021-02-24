@@ -39,6 +39,7 @@
 
 	var paths = {
 		reset: "css!style/reset",
+		flex: "css!style/flex",
 		jquery: "script/toolkit.jquery",
 		datagrid: "script/toolkit.datagrid",
 		datagrid_css: "css!style/toolkit.datagrid",
@@ -147,5 +148,5 @@
 		return this;
 	};
 
-	require('reset');
+	require(['reset', 'flex']);
 })(window, document);
