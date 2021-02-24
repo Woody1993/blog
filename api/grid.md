@@ -44,7 +44,7 @@ dataType | String | json | 接口返回的数据类型，同$.ajax
 pageSize | Number | 20 | 异步请求每页数据的条数
 data | Object \| Array | - | type为async时表示提交给接口得参数<br>type为local时表示表格数据
 dataFormatter | Function | - | 返回值作为表格行数据，默认为接口返回数据的data字段
-collectFormatter | Function | - | 返回值作为表格汇总数据，默认为接口返回数据的count字段
+countFormatter | Function | - | 返回值作为表格汇总数据，默认为接口返回数据的count字段
 totalFormatter | Function | - | 返回值作为表格总条数数据，默认为接口返回数据的total字段
 idKey | String | - | 申明数据唯一标识的Key值，用于已选数据的记录和回填
 

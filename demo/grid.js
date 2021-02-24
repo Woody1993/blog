@@ -12,7 +12,7 @@ require([
 			dataFormatter: function(data) {
 				return data.data;
 			},
-			collectFormatter: function(data) {
+			countFormatter: function(data) {
 				return data.count;
 			},
 			totalFormatter: function(data) {

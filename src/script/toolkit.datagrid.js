@@ -92,7 +92,7 @@ define([
 				grid.pageCount = Math.ceil(total / opt.pageSize);
 				fun(
 					opt.dataFormatter(msg),
-					opt.collectFormatter(msg),
+					opt.countFormatter(msg),
 					total
 				);
 			}
@@ -536,7 +536,7 @@ define([
 		return $tr;
 	};
 
-	var createCount = function(cols, data, collectData) {
+	var createCount = function(cols, data, countData) {
 		var $tr = $('<tr>');
 		var insertTd = function(col) {
 			var $td = $('<td><div class="td" style="width:' + col.width + 'px">');
@@ -560,7 +560,7 @@ define([
 							return count;
 						}
 					})(col.name);
-				var html = col.count.totalFormatter(count, collectData[col.name]);
+				var html = col.count.totalFormatter(count, countData && countData[col.name]);
 				tools.typeof(html) == 'array' && (html = html.join('</br>'));
 				$td.find('div').html(html);
 			}
@@ -710,7 +710,7 @@ define([
 				dataFormatter: function(data) {
 					return data.data;
 				},
-				collectFormatter: function(data) {
+				countFormatter: function(data) {
 					return data.count;
 				},
 				totalFormatter: function(data) {
@@ -768,13 +768,13 @@ define([
 			this.root.body.left.table.dom.html('');
 			this.root.body.right.table.dom.html('');
 
-			var create = function (data, collectData, total) {
+			var create = function (data, countData, total) {
 				me.pushRows(data);
 
 				if (opt.countBar) {
-					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, collectData));
-					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, collectData));
-					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, collectData));
+					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, countData));
+					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, countData));
+					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, countData));
 					initRowHeight.call(me, true)
 				};
 
@@ -904,7 +904,7 @@ define([
 					if (me.crtData.index.indexOf(item[me.crtData.key]) > -1) {
 						index.push(item.__index - 1);
 					}
-				});
+                });
 				me.getRows(index).select();
 			}
 
@@ -979,8 +979,10 @@ define([
 
 		// 清除已选数据
 		clearCrtData: function() {
-			this.crtData.data = [];
-			this.crtData.index = [];
+            if (this.crtData) {
+                this.crtData.data = [];
+                this.crtData.index = [];
+            }
 			this.getCrtRows().unselect();
 			return this;
 		},
@@ -1218,13 +1220,13 @@ define([
         while(true) {
             e.key == 'up' ? --index : ++index;
             if (index < 0) {
-                index = grid.getAllRows().length - 1;
-            } else if (index >= grid.getAllRows().length) {
+                index = focusGrid.getAllRows().length - 1;
+            } else if (index >= focusGrid.getAllRows().length) {
                 index = 0;
             }
-            var nextRow = grid.getRows(index);
+            var nextRow = focusGrid.getRows(index);
             if (nextRow.length) {
-                grid.clearCrtData();
+                focusGrid.clearCrtData();
                 if (nextRow.select().isSelected()) {
                     break;
                 }
