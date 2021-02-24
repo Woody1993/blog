@@ -616,7 +616,9 @@ define([
 			var sl = $(this).scrollLeft();
 			var st = $(this).scrollTop();
 			grid.root.head.main.dom[0].scrollLeft = sl;
-			grid.root.foot.main.dom[0].scrollLeft = sl;
+            if (grid.opt.countBar) {
+                grid.root.foot.main.dom[0].scrollLeft = sl;
+            }
 
 			grid.root.body.left.dom[0].scrollTop = st;
 			grid.root.body.right.dom[0].scrollTop = st;
@@ -688,7 +690,9 @@ define([
 			opt = $.extend({
 				box: 'body',
 				width: '100%',
-				height: 'auto',
+				height: function() {
+                    return this.box.height();
+                },
 				event: {},
 				colModel: [],
 				check: false,
@@ -828,9 +832,12 @@ define([
 						this.sw = _scrollSize;
 					}
 				}
-			}
-			this.root.head.right.dom.css('padding-right', this.sw);
-			this.root.foot.right.dom.css('padding-right', this.sw);
+            }
+
+            this.root.head.right.dom.css('padding-right', this.sw);
+            if (this.opt.countBar) {
+                this.root.foot.right.dom.css('padding-right', this.sw);
+            }
 
 			this.root.body.left.dom.css('bottom', this.sh);
 			this.root.body.right.dom.css('bottom', this.sh);
