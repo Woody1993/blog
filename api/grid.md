@@ -25,7 +25,7 @@ options为表格配置项，具体可参考[基础配置](#gridOptions)。
 box | String \| Object | body | 表格的容器对象<br>可以传入jQuery选择器、jQuery对象或dom对象
 dataFrom | Object | - | 详见[数据源配置](#dataFormOptions)
 width | Number \| String \| Function | 100% | 表格的宽度<br>支持百分比、像素值或者通过方法动态设置
-height | Number \| String \| Function | auto | 表格的高度<br>支持auto（根据内容计算）、像素值或者通过方法动态设置
+height | Number \| String \| Function | 父元素高度 | 表格的高度<br>支持auto（根据内容计算）、像素值或者通过方法动态设置
 event | Object | - | 详见[数据行事件绑定](#rowEvent)
 check | Object | - | 详见[数据行选中规则](#rowCheck)
 colModel | Array | - | 详见[数据列配置](#colModel)

@@ -748,7 +748,7 @@ define([
                     pageSize: opt.dataFrom.pageSize,
                     immediate: false,
 					callback: function(num) {
-						this.update(num, true);
+						this.redrawing(num);
 					}.bind(this)
 				});
             };
@@ -760,13 +760,9 @@ define([
 			return this
 		},
 
-		update: function(page, manual) {
+		redrawing: function(page) {
 			var me = this;
 			var opt = this.opt;
-			var maxnum = me.pageCount || 1;
-			page = page || me.nowPage;
-			page = page > maxnum ? maxnum : page;
-			this.nowPage = page;
 			this.data = [];
 			this.root.body.main.table.dom.html('');
 			this.root.body.left.table.dom.html('');
@@ -784,7 +780,6 @@ define([
 
 				if (this.pageBar) {
                     this.pageBar.setTotal(total);
-                    !manual && this.pageBar.jump(page, false);
 				};
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
@@ -817,7 +812,7 @@ define([
 				}
 			} else {
                 height = parseInt(height);
-				var h = height - this.root.head.dom.height() - 2 - (this.opt.countBar ? this.root.foot.dom.height() : 0) - (this.root.page.dom.height() + 1);
+				var h = height - this.root.head.dom.height() - 2 - (this.opt.countBar ? this.root.foot.dom.height() : 0) - (this.opt.pageBar ? this.root.page.dom.height() + 1 : 0);
 				this.root.dom.height(height - 2);
 				this.root.body.dom.height(h);
 
@@ -844,7 +839,20 @@ define([
 			this.root.body.right.dom.css('right', this.sw);
 			frozeShadow.call(this);
 			return this;
-		},
+        },
+        
+		// 刷新表格指定页数
+        update: function(page) {
+			var maxnum = this.pageCount || 1;
+			page = page || this.nowPage;
+			page = page > maxnum ? maxnum : page;
+            this.nowPage = page;
+            if (this.pageBar) {
+                this.pageBar.jump(page);
+            } else {
+                this.redrawing(page);
+            }
+        },
 
 		// 向表格最下面插入行
 		pushRows: function(data) {

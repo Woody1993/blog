@@ -85,7 +85,7 @@ define([
             this.dom.next.addClass('z-dis');
         };
 
-        this.dom.count.text('当前' + ((page - 1) * this.opt.pageSize + 1) + '-' + (page == this.pageCount ? this.total : page * this.opt.pageSize) + '，共' + this.total+'条');
+        this.dom.count.text('当前' + (this.total == 0 ? 0 : (page - 1) * this.opt.pageSize + 1) + '-' + (this.total == 0 ? 0 : page == this.pageCount ? this.total : page * this.opt.pageSize) + '，共' + this.total+'条');
     };
 
 	var bindEvent = function() {
@@ -116,7 +116,7 @@ define([
 	main.fn = main.prototype = {
 		init: function(opt) {
 			opt = $.extend({
-                total: 1,  // 数据条数
+                total: 0,  // 数据条数
                 pageSize: 20,  // 分页数
                 immediate: true,  // 初始化是否执行回调
 				callback: function() {}
@@ -124,6 +124,7 @@ define([
 
 			this.opt = opt;
             this.box = $(opt.box).eq(0);
+            this.pageNum = 1;
             
             initFrame.call(this);
 
@@ -136,8 +137,8 @@ define([
 			return this;
 		},
 
-		jump: function(page, callback) {
-			page = page || this.pageNum || 1;
+		jump: function(page) {
+			page = page || this.pageNum;
 
 			if (page < 1) page = 1;
 			if (page > this.pageCount) page = this.pageCount;
@@ -146,15 +147,15 @@ define([
             
             updatePageBtn.call(this);
 
-            callback !== false && this.opt.callback(page);
+            this.opt.callback(page);
 			return this;
         },
 
         setTotal: function(num) {
-            num = parseInt(num);
-            if (!num || num == this.total) return this;
+            num = parseInt(num) || 0;
+            if (num == this.total) return this;
 
-			this.pageCount = Math.ceil(num / this.opt.pageSize);
+			this.pageCount = Math.ceil(num / this.opt.pageSize) || 1;
             this.total = num;
             
             updatePageBtn.call(this);
