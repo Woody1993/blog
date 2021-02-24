@@ -68,11 +68,12 @@ define(function() {
 
             if (inputFocus && (!SHORTCUTS_CONFIG.beforeInput || SHORTCUTS_CONFIG.beforeInput({key: key}) !== false)) return;
 
-            e.preventDefault();
-
-            SHORTCUTS_EVENT[key] && SHORTCUTS_EVENT[key]({
-                key: key
-            });
+            if (SHORTCUTS_EVENT[key]) {
+                e.preventDefault();
+                SHORTCUTS_EVENT[key]({
+                    key: key
+                });
+            }
         }
     });
     document.addEventListener('keyup', function(e) {
