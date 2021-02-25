@@ -510,7 +510,7 @@ define([
 		};
 
 		opt.event.click && $tr.click(function() {
-			opt.event.click(rh);
+			opt.event.click.call(grid, rh);
 		});
 		if (opt.check && opt.check.callType != 1) {
 			$tr.click(function() {
@@ -1066,10 +1066,10 @@ define([
 			return this;
 		},
 
-		getIndex: function() {
+		getIndex: function(shift) {
 			var data = [];
 			for (var i in this.rows) {
-				data.push(this.rows[i].__index-1);
+				data.push(this.rows[i].__index - 1 + (shift || 0));
 			}
 			return data.length == 1 ? data[0] : data;
 		},
@@ -1080,7 +1080,20 @@ define([
 				data.push(clearRowsData(this.rows[i]));
 			}
 			return data.length == 1 ? data[0] : data;
-		},
+        },
+
+        prev: function() {
+            return this.grid.getRows(this.getIndex(-1));
+        },
+
+        next: function() {
+            return this.grid.getRows(this.getIndex(1));
+        },
+        
+        click: function() {
+            var grid = this.grid;
+            grid.opt.event.click && grid.opt.event.click.call(grid, this);
+        },
 
 		select: function() {
             var grid = this.grid;
@@ -1088,7 +1101,7 @@ define([
 			this.each(function() {
 				if ($(this.rows[0].__$tr).hasClass('z-crt')) return;
 
-				if (grid.opt.event.beforeSelect && grid.opt.event.beforeSelect(this) === false) return;
+				if (grid.opt.event.beforeSelect && grid.opt.event.beforeSelect.call(grid, this) === false) return;
 				
 				if (!grid.opt.check.multiple) {
 					grid.getCrtRows().unselect();
@@ -1103,7 +1116,7 @@ define([
 					grid.crtData.index.push(data[grid.crtData.key]);
 				}
 
-                grid.opt.event.select && grid.opt.event.select(this);
+                grid.opt.event.select && grid.opt.event.select.call(grid, this);
                 
                 !focusRow && (focusRow = this);
             });
@@ -1205,11 +1218,8 @@ define([
     };
     
     var focusGrid;
-    shortcuts.config({
-        beforeKeydown: function(e) {
-            return !['up', 'down', 'pageup', 'down'].includes(e.key) || (focusGrid && focusGrid.opt.shortcuts.includes(e.key));
-        }
-    }).listener(['up', 'down'], function(e) {
+    shortcuts.listener(['up', 'down'], function(e) {
+        if (!focusGrid || !focusGrid.opt.shortcuts.includes(e.key)) return;
         var crtRow = focusGrid.getCrtRows();
         var index = -1;
 
@@ -1235,6 +1245,7 @@ define([
             }
         }
     }).listener(['pageup', 'pagedown'], function(e) {
+        if (!focusGrid || !focusGrid.opt.shortcuts.includes(e.key)) return;
         focusGrid.update(focusGrid.nowPage + (e.key == 'pageup' ? -1 : 1));
     });
 

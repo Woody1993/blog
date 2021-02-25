@@ -28,14 +28,14 @@ require([
 
 		event: {
 			click: function(rh) {
-				// console.log('click:', rh);
+				console.log('click:', rh);
 			},
 			beforeSelect: function(rh) {
-				// console.log('beforeSelect:', rh);
+				console.log('beforeSelect:', rh);
 				if (rh.getData().status == '待付款2') return false;
 			},
 			select: function(rh) {
-                // console.log('select:', rh);
+                console.log('select:', rh);
                 $ipts = rh.find('input[type="text"]');
                 focusIpt();
 			}
