@@ -10,7 +10,7 @@
 ├ font  // 字体图标文件
 ├ script  // 各模块组件
 ├ style  // 样式文件
-└ d.toolkit.js  // 基础核心代码
+└ toolkit.js  // 基础核心代码
 ```
 
 ## 开始使用
@@ -18,7 +18,7 @@
 将工具包完整的部署到你的项目目录或静态资源服务器当中，只需要在页面中引入基础核心代码文件：
 
 ```
-<script src="d.toolkit.js"></script>
+<script src="toolkit.js"></script>
 ```
 
 没错，不需要去引入其它文件，因为它们都是在实际使用时才会自动加载。比如：
@@ -34,7 +34,7 @@
 
     <!-- HTML代码 -->
 
-    <script src="d.toolkit.js"></script>
+    <script src="toolkit.js"></script>
     <script>
         require(['jquery', 'grid'], function($, grid) {
         
@@ -46,7 +46,7 @@
 </html>
 ```
 
-**不要改变工具包的目录结构，否则会导致各组件载入失败**。如果一定需要修改目录，可以在**d.toolkit.js**文件中找到如下代码，并修改其它文件的相对路径地址。或直接使用相对路径去加载组件。
+**不要改变工具包的目录结构，否则会导致各组件载入失败**。如果一定需要修改目录，可以在**toolkit.js**文件中找到如下代码，并修改其它文件的相对路径地址。或直接使用相对路径去加载组件。
 
 ```
 var paths = {
@@ -97,7 +97,7 @@ require(function() {
 
 ## 定义模块
 
-d.toolkit.js除了为我们提供require方法外，还提供了自定义模块的方法define。你需要新建一个文件（比如module.js），并写入如下代码：
+toolkit.js除了为我们提供require方法外，还提供了自定义模块的方法define。你需要新建一个文件（比如module.js），并写入如下代码：
 
 ```
 define(function() {

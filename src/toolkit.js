@@ -40,11 +40,14 @@
 	var paths = {
 		reset: "css!style/reset",
 		flex: "css!style/flex",
+		font: "css!style/font",
 		jquery: "script/toolkit.jquery",
 		datagrid: "script/toolkit.datagrid",
 		datagrid_css: "css!style/toolkit.datagrid",
 		pagination: "script/toolkit.pagination",
 		pagination_css: "css!style/toolkit.pagination",
+		popups: "script/toolkit.popups",
+		popups_css: "css!style/toolkit.popups",
 		tools: "script/toolkit.tools",
 		shortcuts: "script/toolkit.shortcuts"
 	};
@@ -148,5 +151,5 @@
 		return this;
 	};
 
-	require(['reset', 'flex']);
+	require(['reset', 'flex', 'font']);
 })(window, document);

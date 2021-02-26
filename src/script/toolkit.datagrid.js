@@ -727,7 +727,7 @@ define([
 			}
 
 			this.opt = opt;
-			this.box = $(opt.box).eq(0);
+			this.box = $(opt.box).eq(0).css('overflow', 'hidden');
 			this.width = opt.width;
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
