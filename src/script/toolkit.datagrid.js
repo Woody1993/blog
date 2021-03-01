@@ -50,9 +50,10 @@ define([
 	'jquery',
 	'tools',
 	'datagrid_css',
+    'form',
     'pagination',
     'shortcuts'
-], function($, tools, pagination, shortcuts) {
+], function($, tools, form, pagination, shortcuts) {
 	var _scrollSize = (function() {  // 浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');
 		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
@@ -65,7 +66,7 @@ define([
 
 	var _eventType = ['click', 'focus', 'blur', 'change'];  // 支持的文本框事件
 
-	var _sysColName = ['__$tr', '__index', '__select', '__hide'];  // 行数据保留字段
+	var _sysColName = ['__$tr', '__index', '__selected', '__hide'];  // 行数据保留字段
 
 	var getData = function(grid, page, fun) {
 		var param = {};
@@ -109,19 +110,35 @@ define([
 
 		if (opt.check) {
 			if (opt.check.callType != 2) {
+                if (opt.check.multiple && opt.check.checkAll) {
+                    grid.allChk = form.createCheck({
+                        type: 'checkbox',
+                        callback: function(checked) {
+                            if (checked) {
+                                grid.getAllRows().select();
+                            } else {
+                                grid.getAllRows().unselect();
+                            }
+                        }
+                    });
+                }
 				opt.colModel.unshift({
-                    sys: 'select',
+                    sys: 'selected',
 					width: 35,
-					title: opt.check.multiple && opt.check.checkAll ? $('<input type="checkbox" class="d-grid-chk-all" />') : '',
+					title: grid.allChk.obj,
 					frozen: 'left',
 					align: 'center',
 					dataFormatter: function(data, rh) {
-						return $('<input type="checkbox" class="d-grid-chk" ' + (data ? 'checked="true"' : '') + ' />').click(function(e) {
-							e.stopPropagation();
-							if (data) rh.unselect();
-							else rh.select();
-							return false;
-						});
+                        return form.createCheck({
+                            type: 'checkbox',
+                            checked: !!data,
+                            callback: function(checked, stop) {
+                                stop();
+                                if (data) rh.unselect();
+                                else rh.select();
+                                return false;
+                            }
+                        }).obj;
 					}
 				})
 			}
@@ -670,16 +687,6 @@ define([
 			this.root.dom.removeClass('froze-right-shadow');
 		}
 	}, 100);
-
-	var bindEvent = function(grid) {
-		grid.root.head.left.dom.find('.d-grid-chk-all').click(function() {
-			if ($(this).attr('checked')) {
-				grid.getAllRows().select();
-			} else {
-				grid.getAllRows().unselect();
-			}
-		});
-	};
 	
 	var main = function(opt) {
 		return new main.fn.init(opt);
@@ -740,7 +747,6 @@ define([
 			}
 			initFrame(this);
 			scrollEvent.call(this);
-            bindEvent(this);
 
 			if (opt.pageBar) {
 				this.pageBar = pagination({
@@ -767,6 +773,7 @@ define([
 			this.root.body.main.table.dom.html('');
 			this.root.body.left.table.dom.html('');
 			this.root.body.right.table.dom.html('');
+            this.allChk && this.allChk.check(false);
 
 			var create = function (data, countData, total) {
 				me.pushRows(data);
@@ -942,7 +949,7 @@ define([
 		getCrtRows: function() {
 			var a = [];
 			for (var i in this.data) {
-				if (this.data[i].__select) {
+				if (this.data[i].__selected) {
 					a.push(this.data[i]);	
 				}
 			}
@@ -1108,7 +1115,7 @@ define([
 				}
 
 				$(this.rows[0].__$tr).addClass('z-crt');
-				this.rows[0].__select = true;
+				this.rows[0].__selected = true;
 
 				var data = clearRowsData(this.getData());
 				if (grid.crtData && data[grid.crtData.key] !== undefined && grid.crtData.index.indexOf(data[grid.crtData.key]) == -1) {
@@ -1120,6 +1127,10 @@ define([
                 
                 !focusRow && (focusRow = this);
             });
+
+            if (grid.allChk && grid.getCrtRows().length == grid.getAllRows().length) {
+                grid.allChk.check(true);
+            }
             
             if (focusRow) {
                 var scrollTop = this.grid.root.body.main.dom[0].scrollTop,
@@ -1141,7 +1152,7 @@ define([
 			this.each(function() {
 				if (!$(this.rows[0].__$tr).hasClass('z-crt')) return;
 				$(this.rows[0].__$tr).removeClass('z-crt');
-				this.rows[0].__select = false;
+				this.rows[0].__selected = false;
 
 				var data = clearRowsData(this.getData());
 				if (grid.crtData && grid.crtData.index.indexOf(data[grid.crtData.key]) > -1) {
@@ -1149,14 +1160,15 @@ define([
 					grid.crtData.data.splice(index, 1);
 					grid.crtData.index.splice(index, 1);
 				}
-			});
+            });
+            grid.allChk && grid.allChk.check(false);
 			return this;
         },
         
         isSelected: function() {
             var selected = true;
             this.each(function() {
-                if (!this.rows[0].__select) {
+                if (!this.rows[0].__selected) {
                     selected = false;
                     return false;
                 }

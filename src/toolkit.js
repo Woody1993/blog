@@ -48,6 +48,8 @@
 		pagination_css: "css!style/toolkit.pagination",
 		popups: "script/toolkit.popups",
 		popups_css: "css!style/toolkit.popups",
+		form: "script/toolkit.form",
+		form_css: "css!style/toolkit.form",
 		tools: "script/toolkit.tools",
 		shortcuts: "script/toolkit.shortcuts"
 	};
@@ -60,7 +62,13 @@
 		return (absPath(u) ? "" : baseUrl) + u + (type ? (type == 'js' ? (/\.js$/.test(u) ? "" : ".js") : (/\.css$/.test(u) ? "" : ".css")) : '');
 	}
 
+	var step = 0;
+	document.addEventListener('DOMContentLoaded', function() {
+		document.body.style.opacity = '0';
+    }, false);
+    
 	w.require = function(modules, callback, exports) {
+		++step;
 		typeof modules === 'function' && (
 			callback = modules,
 			modules = []
@@ -98,6 +106,10 @@
 			modules.length > 1 ?
 				that.require(modules.slice(1), callback, exports) :
 				(typeof callback === 'function' && callback.apply(that, exports));
+				
+            if (!--step) {
+                document.body.style.opacity = '1';
+            };
 		}
 
 		if (modules.length === 0) {

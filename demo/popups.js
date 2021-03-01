@@ -30,7 +30,7 @@ require([
 	});
 
 	$('#dialog').click(function() {
-		popups.dialog({
+		window.d = popups.dialog({
 			type: 2,
 			title: '会话框',
 			area: [1920, 1280],

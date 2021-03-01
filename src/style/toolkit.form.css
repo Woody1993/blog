@@ -1,0 +1,23 @@
+.d-check {
+    display: inline-block;
+    cursor: pointer;
+}
+.d-check div {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #fff;
+    background: #fff;
+}
+.d-check.z-chk div {
+    border-color: #FF9000;
+    background: #FF9000;
+}
+.d-check span {
+    margin-left: .5em;
+}
+.d-check input {
+    display: none;
+}

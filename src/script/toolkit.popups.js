@@ -16,17 +16,53 @@ define([
 	var _objStartXY = {};
 	var _eventStartXY = {};
 
-	$.fn.close = function() {
-		var self = $(this);
-        $(this).addClass('an-fadeout');
-        $('.d-popups-layer').addClass('an-fadeout');
-        clearTimeout(main.timer);
+    function Handle(type, obj) {
+        var o = {
+            close: function() {
+                obj.addClass('an-fadeout');
 
-        setTimeout(function() {
-            self.remove();
-            $('.d-popups-layer').remove();
-        }, 300);
-    };
+                if (type == 'msg') {
+                    clearTimeout(main.timer);
+                } else {
+                    $('.d-popups-layer').addClass('an-fadeout');
+                }
+
+                setTimeout(function() {
+                    obj.remove();
+                    if (type != 'msg') {
+                        $('.d-popups-layer').remove();
+                    }
+                }, 300);
+            }
+        }
+
+        if (type == 'dialog') {
+            o.hide = function() {
+                if (!this.hidden) {
+                    obj.addClass('an-fadeout');
+                    $('.d-popups-layer').addClass('an-fadeout');
+    
+                    setTimeout(function() {
+                        obj.hide();
+                        $('.d-popups-layer').remove();
+                    }, 300);
+    
+                    this.hidden = true;
+                }
+            }
+
+            o.show = function() {
+                if (this.hidden) {
+                    this.hidden = false;
+                    obj.show();
+                    obj.removeClass('an-fadeout');
+                    main.layer();
+                }
+            }
+        }
+
+        return o;
+    }
     
     var main = {
         message: function(opt) {
@@ -47,16 +83,17 @@ define([
             ].join('')).appendTo('body');
 
             this.timer = setTimeout(function() {
-                $message.close();
+                handle.close();
                 opt.callback();
             }, opt.timeout);
 
             $message.click(function() {
-                $(this).close();
+                handle.close();
                 opt.callback();
             });;
     
-            return $message;
+            var handle = new Handle('msg', $message);
+            return handle;
         },
         
         confirm: function(opt) {
@@ -76,7 +113,7 @@ define([
                 onCancel: function() {}
             }, opt || {});
 
-            this.dialog({
+            return this.dialog({
                 type: 1,
                 area: [380, 'auto'],
                 title: opt.title,
@@ -90,8 +127,6 @@ define([
                 closeBtn: false,
                 callback: opt.callback
             });
-
-            return $confirm;
         },
         
         dialog: function(opt) {
@@ -120,7 +155,7 @@ define([
             var height = opt.area[1] == 'auto' ? 'auto' : opt.area[1] >  maxHeight ? maxHeight : opt.area[1];
 
             //生成会话框对象
-            $('<div class="d-popups-layer an-fadein"></div>').appendTo('body');
+            main.layer();
             var $dialogBox = $('<div class="d-dialog-box an-fadein"></div>').appendTo('body');
             var $dialog = $('<div class="d-dialog an-bounce"></div>').width(width).appendTo($dialogBox);
 
@@ -133,7 +168,7 @@ define([
 
             if (opt.closeBtn) {
                 $('<a title="关闭"><i class="df df-dialog-close"></i></a>').click(function() {
-                    $dialogBox.close();
+                    handle.close();
                 }).mousedown(function(e) {
                     e.stopPropagation();
                 }).appendTo($head);
@@ -239,7 +274,7 @@ define([
                 opt.btns.forEach(function(item) {
                     $('<button>' + item.name + '</button>').addClass(item.className).click(function() {
                         if (opt.callback(item.value, sw, s$) !== false) {
-                            $dialogBox.close();
+                            handle.close();
                         }
                     }).appendTo($btns);
                 });
@@ -251,7 +286,12 @@ define([
                 'top': position[0] == 'top' ? 0 : (position[0] == 'bottom' ? ($(window).height() - $dialogBox.height()) : ($(window).height() - $dialogBox.height()) / 2)
             });
 
-            return $dialog;
+            var handle = new Handle('dialog', $dialogBox);
+            return handle;
+        },
+
+        layer: function() {
+            $('<div class="d-popups-layer an-fadein"></div>').appendTo('body');
         }
     }
 
