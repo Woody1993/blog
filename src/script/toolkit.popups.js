@@ -9,7 +9,7 @@
 **/
 
 define([
-	'jquery',
+	'lib/jquery',
 	'popups_css'
 ], function($) {
 	var _moveDialogObj = undefined;

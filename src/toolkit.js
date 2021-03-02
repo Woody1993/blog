@@ -88,7 +88,10 @@
 				el.tagName == 'SCRIPT' && head.removeChild(el);
 				o.load[module] = true;
 				onDefine();
-			}
+			} else {
+                exports.push(undefined),
+                onCallback();
+            }
 		}
 
 		function onDefine() {
@@ -103,9 +106,13 @@
 		}
 
 		function onCallback() {
-			modules.length > 1 ?
-				that.require(modules.slice(1), callback, exports) :
-				(typeof callback === 'function' && callback.apply(that, exports));
+            try {
+                modules.length > 1 ?
+                    that.require(modules.slice(1), callback, exports) :
+                    (typeof callback === 'function' && callback.apply(that, exports));
+            } catch(e) {
+                console.error(e);
+            }
 				
             if (!--step) {
                 document.body.style.opacity = '1';
@@ -131,9 +138,15 @@
 			head.appendChild(el);
 			el.addEventListener ||
 			!el.attachEvent || 
-			el.attachEvent.toString && el.attachEvent.toString().indexOf("[native code") < 0 ? el.addEventListener("load", function(e) {
-				onFileLoad(e);
-			}, !1) : el.attachEvent("onreadyftatechange", function(e) {
+            el.attachEvent.toString && el.attachEvent.toString().indexOf("[native code") < 0 ? 
+            (
+                el.addEventListener("load", function(e) {
+                    onFileLoad(e);
+                }, !1),
+                el.addEventListener("error", function(e) {
+                    onFileLoad(e);
+                }, !1)
+            ) : el.attachEvent("onreadyftatechange", function(e) {
 				onFileLoad(e);
 			});
 		
