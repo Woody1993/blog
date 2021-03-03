@@ -80,7 +80,8 @@ define(function() {
 			case 'number':
 				if (v !== v) return 'NaN';
 				return typeof v;
-			case 'object':
+            case 'object':
+                if (!v) return 'null';
 				if (v.constructor === Array) return 'array';
 				return typeof v;
 			default:

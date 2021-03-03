@@ -79,8 +79,9 @@ define([
 			var sortBy = grid.sortBy.split(',');
 			param.sort = sortBy[0];
 			param.sortBy = sortBy[1]
-		}
-		$.ajax({
+        }
+        grid.ajaxObj && grid.ajaxObj.abort();
+		grid.ajaxObj = $.ajax({
 			url: opt.url + '?t=' + (new Date()).getTime(),
 			type: opt.method,
 			data: param,
@@ -704,18 +705,23 @@ define([
 				colModel: [],
 				check: false,
                 pageBar: true,
+                immediate: true,
                 shortcuts: []
 			}, opt || {});
 
 			opt.dataFrom = $.extend({
 				type: 'ajax',
 				url: '',
-				method: 'GET',
+				method: 'post',
 				data: '',
 				dataType: 'json',
 				pageSize: 20,
 				dataFormatter: function(data) {
-					return data.data;
+					if (opt.pageBar) {
+						return data.data;
+					} else {
+						return data;
+					}
 				},
 				countFormatter: function(data) {
 					return data.count;
@@ -760,7 +766,7 @@ define([
             };
 
 			this.resize();
-            this.update(1);
+            opt.immediate && this.update(1);
 
             focusGrid = this;
 			return this
@@ -791,7 +797,9 @@ define([
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
 					this.resize();
-				}
+                }
+                
+                opt.event.afterUpdate && opt.event.afterUpdate.call(me);
 			}.bind(this);
 
 			if (opt.dataFrom.type == 'ajax') {
@@ -1078,7 +1086,7 @@ define([
 			for (var i in this.rows) {
 				data.push(this.rows[i].__index - 1 + (shift || 0));
 			}
-			return data.length == 1 ? data[0] : data;
+			return data.length <= 1 ? data[0] : data;
 		},
 
 		getData: function() {
@@ -1086,7 +1094,7 @@ define([
 			for (var i in this.rows) {
 				data.push(clearRowsData(this.rows[i]));
 			}
-			return data.length == 1 ? data[0] : data;
+			return data.length <= 1 ? data[0] : data;
         },
 
         prev: function() {

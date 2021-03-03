@@ -57,6 +57,7 @@ idKey | String | - | 申明数据唯一标识的Key值，用于已选数据的�
 click | 行点击时触发，接收参数为该行的数据
 beforeSelect | 行选中前触发，接收参数为该行的数据，返回false可阻止该行被选中
 select | 行选中时触发，接收参数为该行的数据
+afterUpdate | 表格刷新后的回调
 
 <a id="rowCheck" />
 

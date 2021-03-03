@@ -14,7 +14,9 @@ define([
 ], function($) {
 	var _moveDialogObj = undefined;
 	var _objStartXY = {};
-	var _eventStartXY = {};
+    var _eventStartXY = {};
+    
+    var _message;
 
     function Handle(type, obj) {
         var o = {
@@ -73,7 +75,7 @@ define([
                 callback: function() {}
             }, opt || {});
     
-            $('.d-message').remove();
+            _message && _message.close();
 
             var $message = $([
                 '<div class="d-message flex-column flex-center an-fadein">',
@@ -92,7 +94,7 @@ define([
                 opt.callback();
             });;
     
-            var handle = new Handle('msg', $message);
+            var handle = _message = new Handle('msg', $message);
             return handle;
         },
         
