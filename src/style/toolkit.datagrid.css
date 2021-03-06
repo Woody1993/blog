@@ -1,4 +1,19 @@
-.d-grid, .d-grid * {
+.d-grid,
+.d-grid-head,
+.d-grid-body,
+.d-grid-foot,
+.d-grid-page,
+.d-froze-left,
+.d-froze-right,
+.d-main,
+table,
+thead,
+tbody,
+tr,
+th,
+td,
+.th,
+.td {
     margin: 0;
     padding: 0;
     font-size: 12px;

@@ -32,8 +32,9 @@ define([
                         }
     
                         opt.complete(data.state, data.obj, data.message);
+                    } else {
+                        opt.success(data);
                     }
-                    opt.success(data);
 				},
 				error: function(e) {
 					if (e.statusText != 'abort') {

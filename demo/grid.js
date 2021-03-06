@@ -24,7 +24,9 @@ require([
 		width: '100%',
 		height: function() {
 			return window.gridHeight || '600'
-		},
+        },
+        
+        pageBar: true,
 
 		event: {
 			click: function(rh) {
@@ -44,7 +46,7 @@ require([
 		check: {
 			multiple: true,
 			checkAll: true,
-			callType: 0
+			callType: 1
         },
         
         shortcuts: ['up', 'down', 'pageup', 'pagedown'],
@@ -208,7 +210,6 @@ require([
 				}
 			}, {
 				title: '操作',
-				frozen: 'right',
 				width: 160,
 				dataFormatter: function(value, row) {
 					var $btn = $([

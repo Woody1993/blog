@@ -70,11 +70,12 @@ define([
 
 	var getData = function(grid, page, fun) {
 		var param = {};
-		var opt = grid.opt.dataFrom;
-		page = page ? page : 1;
-		param = typeof opt.data == 'function' ? opt.data() : opt.data || {};
-		param.pageIndex = page;
-		param.pageSize = opt.pageSize;
+		var dataFrom = grid.opt.dataFrom, pageBar = grid.pageBar;
+        param = typeof dataFrom.data == 'function' ? dataFrom.data() : dataFrom.data || {};
+        if (pageBar) {
+            param[pageBar.pageIndexParam] = page || 1;
+            param[pageBar.pageSizeParam] = pageBar.pageSize;
+        }
 		if (grid.sortBy) {
 			var sortBy = grid.sortBy.split(',');
 			param.sort = sortBy[0];
@@ -82,19 +83,19 @@ define([
         }
         grid.ajaxObj && grid.ajaxObj.abort();
 		grid.ajaxObj = $.ajax({
-			url: opt.url + '?t=' + (new Date()).getTime(),
-			type: opt.method,
+			url: dataFrom.url,
+			type: dataFrom.method,
 			data: param,
-			dataType: opt.dataType,
+			dataType: dataFrom.dataType,
 			success: function(msg) {
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
-				var total = opt.totalFormatter(msg);
-				grid.pageCount = Math.ceil(total / opt.pageSize);
+				var total = dataFrom.totalFormatter.call(grid, msg);
+				grid.pageCount = Math.ceil(total / dataFrom.pageSize);
 				fun(
-					opt.dataFormatter(msg),
-					opt.countFormatter(msg),
+					dataFrom.dataFormatter.call(grid, msg),
+					dataFrom.countFormatter.call(grid, msg),
 					total
 				);
 			}
@@ -126,7 +127,7 @@ define([
 				opt.colModel.unshift({
                     sys: 'selected',
 					width: 35,
-					title: grid.allChk.obj,
+					title: grid.allChk && grid.allChk.obj,
 					frozen: 'left',
 					align: 'center',
 					dataFormatter: function(data, rh) {
@@ -490,15 +491,15 @@ define([
 
 			function setVal(v) {
 				if (v !== undefined && col.titleFormatter) {
-					var title = tools.typeof(col.titleFormatter) == 'function' ? col.titleFormatter(v) : v;
+					var title = tools.typeof(col.titleFormatter) == 'function' ? col.titleFormatter.call(grid, v) : v;
 					tools.typeof(title) == 'string' && (title = title.replace(/<\/?[^>]*>/g, ''));
 					$td.attr('title', title);
 				}
 
 				if (col.editable) {
-					$td.children('div').children('input').val(col.dataFormatter(v, rh));
+					$td.children('div').children('input').val(col.dataFormatter.call(grid, v, rh));
 				} else {
-					$td.children('div').html(col.dataFormatter(v, rh));
+					$td.children('div').html(col.dataFormatter.call(grid, v, rh));
 				};
 			}
 
@@ -527,18 +528,15 @@ define([
 			insertTd(cols[i]);
 		};
 
-		opt.event.click && $tr.click(function() {
-			opt.event.click.call(grid, rh);
-		});
-		if (opt.check && opt.check.callType != 1) {
-			$tr.click(function() {
-				if ($(this).hasClass('z-crt')) {
+		$tr.click(function() {
+			if ((!opt.event.click || opt.event.click.call(grid, rh) !== false) && opt.check && opt.check.callType != 1) {
+				if (rh.isSelected()) {
 					rh.unselect();
 				} else {
 					rh.select();
 				}
-			});
-		}
+			}
+		});
 
 		$tr.find('.d-grid-ipt').click(function(e) {
 			e.stopPropagation();
@@ -704,7 +702,7 @@ define([
 				event: {},
 				colModel: [],
 				check: false,
-                pageBar: true,
+                pageBar: false,
                 immediate: true,
                 shortcuts: []
 			}, opt || {});
@@ -744,25 +742,30 @@ define([
 			this.width = opt.width;
 			this.height = opt.height;
 			this.colsModel = getColGroup(this);
-			if (opt.dataFrom.idKey) {
-				this.crtData = {
-					key: opt.dataFrom.idKey,
-					data: [],
-					index: []
-				};
-			}
+			this.data = [];
+            this.crtData = {
+                key: opt.dataFrom.idKey,
+                data: [],
+                index: []
+            };
 			initFrame(this);
 			scrollEvent.call(this);
 
 			if (opt.pageBar) {
-				this.pageBar = pagination({
-					box: this.root.page.dom,
-                    pageSize: opt.dataFrom.pageSize,
+                this.pageBar = $.extend({
+                    pageSize: 20,
+                    pageIndexParam: 'pageIndex',
+                    pageSizeParam: 'pageSize'
+                }, typeof opt.pageBar == 'object' ? opt.pageBar : {});
+                
+                this.pageBar.obj = pagination({
+                    box: this.root.page.dom,
+                    pageSize: this.pageBar.pageSize,
                     immediate: false,
-					callback: function(num) {
-						this.redrawing(num);
-					}.bind(this)
-				});
+                    callback: function(num) {
+                        this.redrawing(num);
+                    }.bind(this)
+                });
             };
 
 			this.resize();
@@ -781,6 +784,10 @@ define([
 			this.root.body.right.table.dom.html('');
             this.allChk && this.allChk.check(false);
 
+            if (!this.crtData.key) {
+                this.clearCrtData();
+            }
+
 			var create = function (data, countData, total) {
 				me.pushRows(data);
 
@@ -792,7 +799,7 @@ define([
 				};
 
 				if (this.pageBar) {
-                    this.pageBar.setTotal(total);
+                    this.pageBar.obj.setTotal(total);
 				};
 	
 				if ((typeof this.height == 'function' ? this.height() : this.height) == 'auto') {
@@ -863,7 +870,7 @@ define([
 			page = page > maxnum ? maxnum : page;
             this.nowPage = page;
             if (this.pageBar) {
-                this.pageBar.jump(page);
+                this.pageBar.obj.jump(page);
             } else {
                 this.redrawing(page);
             }
@@ -913,7 +920,7 @@ define([
             
 			initRowHeight.call(me);
 
-			if (me.crtData) {
+			if (me.crtData.key) {
 				var index = [];
 				data.forEach(function(item) {
 					if (me.crtData.index.indexOf(item[me.crtData.key]) > -1) {
@@ -994,10 +1001,8 @@ define([
 
 		// 清除已选数据
 		clearCrtData: function() {
-            if (this.crtData) {
-                this.crtData.data = [];
-                this.crtData.index = [];
-            }
+            this.crtData.data = [];
+            this.crtData.index = [];
 			this.getCrtRows().unselect();
 			return this;
 		},
@@ -1106,6 +1111,7 @@ define([
         },
         
         click: function() {
+            if (!this.length) return;
             var grid = this.grid;
             grid.opt.event.click && grid.opt.event.click.call(grid, this);
         },
@@ -1125,10 +1131,11 @@ define([
 				$(this.rows[0].__$tr).addClass('z-crt');
 				this.rows[0].__selected = true;
 
-				var data = clearRowsData(this.getData());
-				if (grid.crtData && data[grid.crtData.key] !== undefined && grid.crtData.index.indexOf(data[grid.crtData.key]) == -1) {
+                var data = clearRowsData(this.getData()),
+                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex();
+				if (index !== undefined && grid.crtData.index.indexOf(index) == -1) {
 					grid.crtData.data.push(data);
-					grid.crtData.index.push(data[grid.crtData.key]);
+					grid.crtData.index.push(index);
 				}
 
                 grid.opt.event.select && grid.opt.event.select.call(grid, this);
@@ -1162,9 +1169,10 @@ define([
 				$(this.rows[0].__$tr).removeClass('z-crt');
 				this.rows[0].__selected = false;
 
-				var data = clearRowsData(this.getData());
-				if (grid.crtData && grid.crtData.index.indexOf(data[grid.crtData.key]) > -1) {
-					var index = grid.crtData.index.indexOf(data[grid.crtData.key]);
+                var data = clearRowsData(this.getData()),
+                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex();
+				if (grid.crtData.index.indexOf(index) > -1) {
+					var index = grid.crtData.index.indexOf(index);
 					grid.crtData.data.splice(index, 1);
 					grid.crtData.index.splice(index, 1);
 				}
