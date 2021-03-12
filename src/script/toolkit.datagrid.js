@@ -91,8 +91,10 @@ define([
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
-				var total = dataFrom.totalFormatter.call(grid, msg);
-				grid.pageCount = Math.ceil(total / dataFrom.pageSize);
+                if (pageBar) {
+                    var total = dataFrom.totalFormatter.call(grid, msg);
+                    grid.pageCount = Math.ceil(total / pageBar.pageSize);
+                }
 				fun(
 					dataFrom.dataFormatter.call(grid, msg),
 					dataFrom.countFormatter.call(grid, msg),
@@ -713,7 +715,6 @@ define([
 				method: 'post',
 				data: '',
 				dataType: 'json',
-				pageSize: 20,
 				dataFormatter: function(data) {
 					if (opt.pageBar) {
 						return data.data;
