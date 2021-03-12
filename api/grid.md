@@ -134,7 +134,8 @@ insertRows | index, data | 表格对象 | 向表格指定位置插入数据行<b
 getRows | index | 数据行对象 | 获取当前页指定索引值的行<br>**index**：目标索引值，从0开始，获取多行可传数组。例如：[0,1,2]
 getAllRows | - | 数据行对象 | 获取当前页所有行
 getCrtRows | - | 数据行对象 | 获取当前页所有选中行
-getRowsBy | config | 数据行对象 | 获取当前页所有满足条件的行<br>**config**：获取行的条件。例如：{name: ['test1', 'test2'], type: '1'}表示获取name为test1或test2，并且type等于1的行
+getRowsFrom | function | 数据行对象 | 获取当前页所有满足条件的行
+getData | - | 行数据 | 获取当前页所有数据
 getCrtData | - | 行数据 | 获取所有已选数据（包括非当前页）
 clearCrtData | - | 表格对象 | 清除所有已选数据
 setWidth | width | 表格对象 | 修改表格宽度<br>**width**：表格宽度，支持像素值、百分比或方法
@@ -148,8 +149,8 @@ setHeight | height | 表格对象 | 修改表格高度<br>**height**：表格高
 ----- | ---- | ------| ----
 moveTo | index | 数据行对象 | 将数据行移动至指定位置<br>**index**：目标索引值，从0开始
 remove | - | 数据行对象 | 删除数据行
-getIndex | - | 索引值 | 获取数据行索引值，多行则以数组方式返回
-getData | - | 行数据 | 获取数据行索数据，多行则以数组方式返回
+getIndex | - | 索引值 | 获取数据行索引值，以数组方式返回
+getData | - | 行数据 | 获取数据行索数据，以数组方式返回
 prev | - | 数据行对象 | 获取上一行
 next | - | 数据行对象 | 获取下一行
 click | - | 数据行对象 | 触发行点击事件
