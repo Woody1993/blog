@@ -110,7 +110,9 @@ define([
 			main: [],
 			left: [],
 			right: []
-		};
+        };
+        
+        var mainWidth = 0;
 
 		if (opt.check) {
 			if (opt.check.callType != 2) {
@@ -255,6 +257,9 @@ define([
                         });
                     }
 
+                    mainWidth += cols[i].width + 15;
+                    grid.mainWidth = mainWidth;
+
 					json[cols[i].frozen == 'none' ? 'main' : cols[i].frozen].push(cols[i]);
 				}
 			}
@@ -268,7 +273,8 @@ define([
         rightSpaceObj && (
             rightSpaceObj.updateWidth(),
             json.main.push(rightSpaceObj),
-            opt.colModel.push(rightSpaceObj)
+            opt.colModel.push(rightSpaceObj),
+            grid.frozenRight = true
         );
 
 		return json
@@ -277,15 +283,17 @@ define([
 	var initFrame = function(grid) {
 		var opt = grid.opt;
 
-		grid.root = {dom: $('<div class="d-grid"></div>')};
+        grid.root = {dom: $('<div class="d-grid"></div>')};
+        
 		grid.root.head = {dom: $('<div class="d-grid-head"></div>').appendTo(grid.root.dom)};
-		grid.root.head.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.head.dom)};
-		grid.root.head.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.head.dom)};
-		grid.root.head.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.head.dom)};
+		grid.root.head.main = {dom: $('<div class="d-main flex"></div>').appendTo(grid.root.head.dom)};
+		grid.root.head.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.head.main.dom)};
+        grid.root.head.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.head.main.dom)};
+        
 		grid.root.body = {dom: $('<div class="d-grid-body"></div>').appendTo(grid.root.dom)};
-		grid.root.body.left = {dom: $('<div class="d-froze-left">').appendTo(grid.root.body.dom)};
-		grid.root.body.right = {dom: $('<div class="d-froze-right">').appendTo(grid.root.body.dom)};
-		grid.root.body.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.body.dom)};
+		grid.root.body.main = {dom: $('<div class="d-main flex"></div>').appendTo(grid.root.body.dom)};
+		grid.root.body.left = {dom: $('<div class="d-froze-left">').appendTo(grid.root.body.main.dom)};
+		grid.root.body.right = {dom: $('<div class="d-froze-right">').appendTo(grid.root.body.main.dom)};
 
 		if (grid.opt.countBar) {
 			grid.root.foot = {dom: $('<div class="d-grid-foot"></div>').appendTo(grid.root.dom)};
@@ -299,14 +307,19 @@ define([
 		}
 
 		var $headObjs = createThead.call(grid, grid.opt.colModel);
-		grid.root.head.main.dom.append($headObjs[0]);
-		grid.root.head.left.dom.append($headObjs[1]);
-		grid.root.head.right.dom.append($headObjs[2]);
+		grid.root.head.main.dom.prepend($headObjs[0]);
+		grid.root.head.left.dom.prepend($headObjs[1]);
+		grid.root.head.right.dom.prepend($headObjs[2]);
 
 
-		grid.root.body.main.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.main.dom)};
-		grid.root.body.left.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.left.dom)};
-		grid.root.body.right.table = {dom: $('<table><tbody></tbody></table>').appendTo(grid.root.body.right.dom)};
+		grid.root.body.main.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.main.dom)};
+		grid.root.body.left.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.left.dom)};
+		grid.root.body.right.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.right.dom)};
+
+        if (grid.frozenRight) {
+            grid.root.head.main.dom.addClass('has-right');
+            grid.root.body.main.dom.addClass('has-right');
+        }
 
 		grid.box.html(grid.root.dom);
 	};
@@ -672,16 +685,16 @@ define([
 
 	var frozeShadow = tools.throttle(function () {
 		var sl = this.root.body.main.dom.scrollLeft();
-		var maxSl = this.root.body.main.table.dom.width()
-					- this.root.body.main.dom.width()
-					+ this.sw;
+        var maxSl = this.mainWidth
+                    - this.root.body.main.dom.width()
+					+ this.sw - 1;
 
 		if (sl > 0 && !this.root.dom.hasClass('froze-left-shadow')) {
 			this.root.dom.addClass('froze-left-shadow');
 		} else if (sl == 0 && this.root.dom.hasClass('froze-left-shadow')) {
 			this.root.dom.removeClass('froze-left-shadow');
-		}
-
+        }
+        
 		if (sl < maxSl && !this.root.dom.hasClass('froze-right-shadow')) {
 			this.root.dom.addClass('froze-right-shadow');
 		} else if (sl == maxSl && this.root.dom.hasClass('froze-right-shadow')) {
@@ -830,7 +843,7 @@ define([
 				this.root.dom.height('auto');
 				this.root.body.dom.height('auto');
 
-				if (this.root.body.main.table.dom.width() > this.root.body.main.dom.width()) {
+				if (this.mainWidth > this.root.body.main.dom.width()) {
 					this.sh = _scrollSize;
 				}
 			} else {
@@ -843,18 +856,23 @@ define([
 					this.sw = _scrollSize;
 				}
 
-				if (this.root.body.main.table.dom.width() + this.sw > this.root.body.main.dom.width()) {
-					this.sh = _scrollSize;
+				if (this.mainWidth + this.sw > this.root.body.main.dom.width()) {
+                    this.sh = _scrollSize;
+                    this.root.head.main.dom.addClass('scroll-x');
+                    this.root.body.main.dom.addClass('scroll-x');
 
 					if (this.root.body.main.table.dom.height() + this.sh > this.root.body.main.dom.height()) {
 						this.sw = _scrollSize;
 					}
-				}
+				} else {
+                    this.root.head.main.dom.removeClass('scroll-x');
+                    this.root.body.main.dom.removeClass('scroll-x');
+                }
             }
 
-            this.root.head.right.dom.css('padding-right', this.sw);
+            this.root.head.right.dom.css('padding-right', this.sh ? this.sw : 0);
             if (this.opt.countBar) {
-                this.root.foot.right.dom.css('padding-right', this.sw);
+                this.root.foot.right.dom.css('padding-right', this.sh ? this.sw : 0);
             }
 
 			this.root.body.left.dom.css('bottom', this.sh);

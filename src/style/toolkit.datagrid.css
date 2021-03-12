@@ -65,19 +65,14 @@ td,
     white-space: nowrap;
 }
 .d-grid-body .d-main {
-    position: relative;
     height: 100%;
     overflow: auto;
-}
-.d-grid-head .d-main table,
-.d-grid-foot .d-main table {
-    display: inline-block;
 }
 .d-grid-head .d-main:after,
 .d-grid-foot .d-main:after {
     content: '';
-    display: inline-block;
-    width: 100px;
+    display: block;
+    min-width: 100px;
 }
 .d-grid-head th {
     position: relative;
@@ -94,10 +89,10 @@ td,
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.d-grid-head .d-froze-right tr th:nth-child(1) {
+.d-grid-head .scroll-x .d-froze-right tr th:nth-child(1) {
     border-left-width: 1px;
 }
-.d-grid-head .d-froze-right tr th:nth-last-of-type(1) {
+.d-grid-head .scroll-x .d-froze-right tr th:nth-last-of-type(1) {
     border-right: 0;
 }
 
@@ -160,10 +155,10 @@ td,
     border-style: dotted;
     border-color: #ccc;
 }
-.d-grid-body .d-froze-right tr td:nth-child(1) {
+.d-grid-body .scroll-x .d-froze-right tr td:nth-child(1) {
     border-left-width: 1px;
 }
-.d-grid-body .d-froze-right tr td:nth-last-of-type(1) {
+.d-grid-body .scroll-x .d-froze-right tr td:nth-last-of-type(1) {
     border-right: 0;
 }
 .d-grid-body div.td {
@@ -204,7 +199,7 @@ td,
     right: 0;
 }
 .froze-left-shadow .d-froze-left,
-.froze-right-shadow .d-froze-right {
+.froze-right-shadow .scroll-x .d-froze-right {
     box-shadow: 0 0 10px 0 rgba(0,0,0,.12);
 }
 
@@ -222,7 +217,7 @@ td,
     line-height: 20px;
     padding: 3px 7px;
 }
-.d-grid-foot .d-froze-right tr td:nth-last-of-type(1) {
+.d-grid-foot .scroll-x .d-froze-right tr td:nth-last-of-type(1) {
     border-right: 0;
 }
 
@@ -234,4 +229,23 @@ td,
 
 .d-grid-chk-all, .d-grid-chk {
     vertical-align: -2px;
+}
+
+.d-froze-right {
+    align-self: baseline;
+    position: initial;
+    overflow: initial;
+}
+.scroll-x .d-froze-right {
+    position: absolute;
+    overflow: hidden;
+}
+
+.d-main.has-right > table tr:nth-child(1) th:nth-last-child(1),
+.d-main.has-right > table td:nth-last-child(1) {
+    display: none;
+}
+.d-main.has-right.scroll-x > table tr:nth-child(1) th:nth-last-child(1),
+.d-main.has-right.scroll-x > table td:nth-last-child(1) {
+    display: table-cell;
 }
