@@ -11,7 +11,7 @@
  * 					└ ┐ 获取所有行  getAllRows √
  * 					  │ 根据序号获得行  getRows √
  * 					  │ 获得当前页选中行  getCrtRows √
- * 					  └ 通过条件获取行  getRowsBy √
+ * 					  └ 通过条件获取行  getRowsFrom √
  * 					  	├ 移动至指定位置  moveTo √
  * 						├ 删除  remove √
  * 						├ 获取序号  getIndex √
@@ -35,6 +35,7 @@
  * 				整列隐藏  [5]
  * 				整列拖拽排序  [5]
  * 				保存表格已选行数据，并在表格刷新（搜索、跳页等情况）时回填已选状态，提供方法
+ * 					├ 获取所有数据  getData √
  * 					├ 获取已选数据  getCrtData √
  * 					└ 清除已选数据  clearCrtData √
  *              表格搜索功能  [4]
@@ -297,10 +298,14 @@ define([
 
 		if (grid.opt.countBar) {
 			grid.root.foot = {dom: $('<div class="d-grid-foot"></div>').appendTo(grid.root.dom)};
-			grid.root.foot.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
-			grid.root.foot.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
-			grid.root.foot.main = {dom: $('<div class="d-main"></div>').appendTo(grid.root.foot.dom).append('<table><tbody></tbody></table>')};
-		};
+			grid.root.foot.main = {dom: $('<div class="d-main flex"></div>').appendTo(grid.root.foot.dom)};
+			grid.root.foot.left = {dom: $('<div class="d-froze-left"></div>').appendTo(grid.root.foot.main.dom)};
+			grid.root.foot.right = {dom: $('<div class="d-froze-right"></div>').appendTo(grid.root.foot.main.dom)};
+            
+            grid.root.foot.main.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.foot.main.dom)};
+            grid.root.foot.left.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.foot.left.dom)};
+            grid.root.foot.right.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.foot.right.dom)};
+        };
 
 		if (opt.pageBar) {
 			grid.root.page = {dom: $('<div class="d-grid-page"></div>').appendTo(grid.root.dom)};
@@ -311,7 +316,6 @@ define([
 		grid.root.head.left.dom.prepend($headObjs[1]);
 		grid.root.head.right.dom.prepend($headObjs[2]);
 
-
 		grid.root.body.main.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.main.dom)};
 		grid.root.body.left.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.left.dom)};
 		grid.root.body.right.table = {dom: $('<table><tbody></tbody></table>').prependTo(grid.root.body.right.dom)};
@@ -319,6 +323,9 @@ define([
         if (grid.frozenRight) {
             grid.root.head.main.dom.addClass('has-right');
             grid.root.body.main.dom.addClass('has-right');
+            if (grid.opt.countBar) {
+                grid.root.foot.main.dom.addClass('has-right');
+            }
         }
 
 		grid.box.html(grid.root.dom);
@@ -600,9 +607,7 @@ define([
 		for (var i = 0, len = cols.length; i < len; i++) {
 			insertTd(cols[i])
 		}
-		var $table = $('<table><tbody></tbody></table>');
-		$table.find('tbody').html($tr);
-		return $table;
+		return $tr;
 	};
 
 	var initRowHeight = function(count) {
@@ -700,7 +705,7 @@ define([
 		} else if (sl == maxSl && this.root.dom.hasClass('froze-right-shadow')) {
 			this.root.dom.removeClass('froze-right-shadow');
 		}
-	}, 100);
+	}, 300);
 	
 	var main = function(opt) {
 		return new main.fn.init(opt);
@@ -806,9 +811,9 @@ define([
 				me.pushRows(data);
 
 				if (opt.countBar) {
-					this.root.foot.main.dom.html(createCount.call(me, this.colsModel.main, data, countData));
-					this.root.foot.left.dom.html(createCount.call(me, this.colsModel.left, data, countData));
-					this.root.foot.right.dom.html(createCount.call(me, this.colsModel.right, data, countData));
+					this.root.foot.main.table.dom.html(createCount.call(me, this.colsModel.main, data, countData));
+					this.root.foot.left.table.dom.html(createCount.call(me, this.colsModel.left, data, countData));
+					this.root.foot.right.table.dom.html(createCount.call(me, this.colsModel.right, data, countData));
 					initRowHeight.call(me, true)
 				};
 
@@ -860,6 +865,10 @@ define([
                     this.sh = _scrollSize;
                     this.root.head.main.dom.addClass('scroll-x');
                     this.root.body.main.dom.addClass('scroll-x');
+                    if (this.opt.countBar) {
+                        this.root.foot.main.dom.addClass('scroll-x');
+                    }
+                    this.root.body.main.dom.scroll();
 
 					if (this.root.body.main.table.dom.height() + this.sh > this.root.body.main.dom.height()) {
 						this.sw = _scrollSize;
@@ -867,6 +876,9 @@ define([
 				} else {
                     this.root.head.main.dom.removeClass('scroll-x');
                     this.root.body.main.dom.removeClass('scroll-x');
+                    if (this.opt.countBar) {
+                        this.root.foot.main.dom.removeClass('scroll-x');
+                    }
                 }
             }
 
@@ -991,29 +1003,21 @@ define([
 		},
 
 		// 根据条件获取行
-		getRowsBy: function(o) {
-			var a = [];
-			for (var i in this.data) {
-				var state = true;
-				for (var j in o) {
-					if (_sysColName.indexOf(j) == -1 && this.data[i][j] !== undefined) {
-						if (tools.typeof(o[j]) == 'array') {
-							if (o[j].indexOf(this.data[i][j]) == -1) {
-								state = false;
-								break;
-							}
-						} else if (o[j] != this.data[i][j]) {
-							state = false;
-							break;
-						}
-					}
-				}
-				if (state) a.push(this.data[i]);
-			}
-			return new rowsHandle(this, a);
-		},
+		getRowsFrom: function(fun) {
+            var data = [];
+            this.data.forEach(function(item) {
+                if (!!fun(item)) {
+                    data.push(item)
+                }
+            });
+			return new rowsHandle(this, data);
+        },
+        
+        getData() {
+            return this.getAllRows().getData();
+        },
 
-		// 获取已选数据
+		// 获取数据
 		getCrtData: function() {
 			return this.crtData.data;
 		},
@@ -1110,7 +1114,7 @@ define([
 			for (var i in this.rows) {
 				data.push(this.rows[i].__index - 1 + (shift || 0));
 			}
-			return data.length <= 1 ? data[0] : data;
+			return data;
 		},
 
 		getData: function() {
@@ -1118,7 +1122,7 @@ define([
 			for (var i in this.rows) {
 				data.push(clearRowsData(this.rows[i]));
 			}
-			return data.length <= 1 ? data[0] : data;
+			return data;
         },
 
         prev: function() {
@@ -1150,8 +1154,8 @@ define([
 				$(this.rows[0].__$tr).addClass('z-crt');
 				this.rows[0].__selected = true;
 
-                var data = clearRowsData(this.getData()),
-                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex();
+                var data = clearRowsData(this.getData()[0]),
+                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex()[0];
 				if (index !== undefined && grid.crtData.index.indexOf(index) == -1) {
 					grid.crtData.data.push(data);
 					grid.crtData.index.push(index);
@@ -1188,8 +1192,8 @@ define([
 				$(this.rows[0].__$tr).removeClass('z-crt');
 				this.rows[0].__selected = false;
 
-                var data = clearRowsData(this.getData()),
-                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex();
+                var data = clearRowsData(this.getData()[0]),
+                    index = grid.crtData.key ? data[grid.crtData.key] : this.getIndex()[0];
 				if (grid.crtData.index.indexOf(index) > -1) {
 					var index = grid.crtData.index.indexOf(index);
 					grid.crtData.data.splice(index, 1);
@@ -1271,7 +1275,7 @@ define([
         var index = -1;
 
         if (crtRow.length) {
-            index = e.key == 'up' ? crtRow.eq(0).getIndex() : crtRow.eq(-1).getIndex();
+            index = e.key == 'up' ? crtRow.eq(0).getIndex()[0] : crtRow.eq(-1).getIndex()[0];
         }
 
         while(true) {

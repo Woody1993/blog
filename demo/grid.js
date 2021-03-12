@@ -34,7 +34,7 @@ require([
 			},
 			beforeSelect: function(rh) {
 				console.log('beforeSelect:', rh);
-				if (rh.getData().status == '待付款2') return false;
+				if (rh.getData()[0].status == '待付款2') return false;
 			},
 			select: function(rh) {
                 console.log('select:', rh);
@@ -90,13 +90,9 @@ require([
 						name: 'icon',
 						width: 60,
 						dataFormatter: function(value, row) {
-							return '<div style="width:60px;height:60px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'?t='+row.getIndex()+'" /></div>';
+							return '<div style="width:60px;height:60px;padding:5px 0;"><img style="max-width:100%;max-height:100%;" src="'+value+'?t='+row.getIndex()[0]+'" /></div>';
 						},
 						titleFormatter: false
-					}, {
-						title: '用户名',
-						name: 'username',
-						width: 60
 					}, {
 						title: '姓名',
 						name: 'name',
@@ -109,87 +105,79 @@ require([
 					}
 				]
 			}, {
-				title: '下单时间',
-				name: 'buyDate',
-				width: 120
+				title: '货品数量',
+				name: 'productCount',
+				width: 60,
+				count: true
 			}, {
-				title: '付款时间',
-				name: 'payDate',
-				width: 120
-			// }, {
-			// 	title: '货品数量',
-			// 	name: 'productCount',
-			// 	width: 60,
-			// 	count: true
-			// }, {
-			// 	title: '订单金额',
-			// 	subCol: [
-			// 		{
-			// 			title: '货品金额',
-			// 			name: 'productSum',
-			// 			width: 60,
-			// 			dataFormatter: function(value) {
-			// 				return value.toFixed(2);
-			// 			},
-			// 			count: {
-			// 				mode: 'number',  // number || type
-			// 				itemFormatter: function(value) {
-			// 					return parseFloat(value) || 0;
-			// 				},
-			// 				totalFormatter: function(value) {
-			// 					return value.toFixed(2);
-			// 				}
-			// 			}
-			// 		}, {
-			// 			title: '运费',
-			// 			name: 'logisticsSum',
-			// 			width: 60,
-			// 			dataFormatter: function(value) {
-			// 				return value.toFixed(2);
-			// 			},
-			// 			count: {
-			// 				mode: 'number',  // number || type
-			// 				itemFormatter: function(value) {
-			// 					return parseFloat(value) || 0;
-			// 				},
-			// 				totalFormatter: function(value) {
-			// 					return value.toFixed(2);
-			// 				}
-			// 			}
-			// 		}
-			// 	]
-			// }, {
-			// 	title: '支付方式',
-			// 	name: 'payType',
-			// 	width: 60,
-			// 	count: {
-			// 		mode: 'type',  // number || type
-			// 		itemFormatter: function(value) {
-			// 			return value == '支付宝' ? 'alipay' : 'wechat';
-			// 		},
-			// 		totalFormatter: function(value) {
-			// 			return [
-			// 				'支付宝:' + value.alipay,
-			// 				'微信:' + value.wechat
-			// 			];
-			// 		}
-			// 	}
-			// }, {
-			// 	title: '支付金额',
-			// 	name: 'paySum',
-			// 	width: 60,
-			// 	dataFormatter: function(value) {
-			// 		return value.toFixed(2);
-			// 	},
-			// 	count: {
-			// 		mode: 'number',  // number || type
-			// 		itemFormatter: function(value) {
-			// 			return parseFloat(value) || 0;
-			// 		},
-			// 		totalFormatter: function(value) {
-			// 			return value.toFixed(2);
-			// 		}
-			// 	}
+				title: '订单金额',
+				subCol: [
+					{
+						title: '货品金额',
+						name: 'productSum',
+						width: 60,
+						dataFormatter: function(value) {
+							return value.toFixed(2);
+						},
+						count: {
+							mode: 'number',  // number || type
+							itemFormatter: function(value) {
+								return parseFloat(value) || 0;
+							},
+							totalFormatter: function(value) {
+								return value.toFixed(2);
+							}
+						}
+					}, {
+						title: '运费',
+						name: 'logisticsSum',
+						width: 60,
+						dataFormatter: function(value) {
+							return value.toFixed(2);
+						},
+						count: {
+							mode: 'number',  // number || type
+							itemFormatter: function(value) {
+								return parseFloat(value) || 0;
+							},
+							totalFormatter: function(value) {
+								return value.toFixed(2);
+							}
+						}
+					}
+				]
+			}, {
+				title: '支付方式',
+				name: 'payType',
+				width: 60,
+				count: {
+					mode: 'type',  // number || type
+					itemFormatter: function(value) {
+						return value == '支付宝' ? 'alipay' : 'wechat';
+					},
+					totalFormatter: function(value) {
+						return [
+							'支付宝:' + value.alipay,
+							'微信:' + value.wechat
+						];
+					}
+				}
+			}, {
+				title: '支付金额',
+				name: 'paySum',
+				width: 60,
+				dataFormatter: function(value) {
+					return value.toFixed(2);
+				},
+				count: {
+					mode: 'number',  // number || type
+					itemFormatter: function(value) {
+						return parseFloat(value) || 0;
+					},
+					totalFormatter: function(value) {
+						return value.toFixed(2);
+					}
+				}
 			}, {
 				title: '备注',
 				name: 'remark',
@@ -225,10 +213,10 @@ require([
 							row.moveTo(0);
 							break;
 						case 1:
-							row.moveTo(row.getIndex()-1);
+							row.moveTo(row.getIndex()[0]-1);
 							break;
 						case 2:
-							row.moveTo(row.getIndex()+1);
+							row.moveTo(row.getIndex()[0]+1);
 							break;
 						case 3:
 							row.moveTo(-1);
