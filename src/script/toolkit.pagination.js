@@ -138,7 +138,7 @@ define([
 		},
 
 		jump: function(page) {
-			page = page || this.pageNum;
+			page = parseInt(page) || this.pageNum;
 
 			if (page < 1) page = 1;
 			if (page > this.pageCount) page = this.pageCount;
