@@ -53,8 +53,9 @@ define([
 	'datagrid_css',
     'form',
     'pagination',
-    'shortcuts'
-], function($, tools, form, pagination, shortcuts) {
+    'shortcuts',
+    'popups'
+], function($, tools, form, pagination, shortcuts, popups) {
 	var _scrollSize = (function() {  // 浏览器滚动条大小
 		var noScroll, scroll, oDiv = document.createElement('div');
 		oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;';
@@ -83,12 +84,16 @@ define([
 			param.sortBy = sortBy[1]
         }
         grid.ajaxObj && grid.ajaxObj.abort();
+        grid.loading && grid.loading.close();
+
+        grid.loading = popups.loading();
 		grid.ajaxObj = $.ajax({
 			url: dataFrom.url,
 			type: dataFrom.method,
 			data: param,
 			dataType: dataFrom.dataType,
 			success: function(msg) {
+                grid.loading.close();
 				if (typeof msg == 'string') {
 					msg = (new Function("return " + msg))();
 				}
@@ -323,7 +328,7 @@ define([
         if (grid.frozenRight) {
             grid.root.head.main.dom.addClass('has-right');
             grid.root.body.main.dom.addClass('has-right');
-            if (grid.pageCount) {
+            if (grid.opt.countBar) {
                 grid.root.foot.main.dom.addClass('has-right');
             }
         }
@@ -1005,15 +1010,16 @@ define([
 		// 根据条件获取行
 		getRowsFrom: function(fun) {
             var data = [];
-            this.data.forEach(function(item) {
-                if (!!fun(item)) {
-                    data.push(item)
+            this.getAllRows().each(function() {
+                var data = this.getData();
+                if (!!fun.call(this, data)) {
+                    data.push(data)
                 }
-            });
+            })
 			return new rowsHandle(this, data);
         },
         
-        getData() {
+        getData: function() {
             return this.getAllRows().getData();
         },
 

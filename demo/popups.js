@@ -2,6 +2,13 @@ require([
 	'jquery',
 	'popups'
 ], function($, popups) {
+	$('#loading').click(function() {
+        var a = popups.loading();
+        setTimeout(function() {
+            a.close();
+        }, 2000)
+    });
+    
 	$('#alert0').click(function() {
 		popups.message({
 			msg: '这里是消息框'

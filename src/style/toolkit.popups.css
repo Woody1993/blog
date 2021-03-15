@@ -48,6 +48,24 @@
 }
 /* end animation */
 
+/* loading */
+.d-loading {
+    z-index: 999;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+}
+.d-loading:after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 24px;
+    background: url(../img/loading.gif);
+}
+/* end loading */
+
 /* message */
 .d-message {
     z-index: 999;
@@ -99,7 +117,7 @@
 
 /* end dialog */
 .d-dialog-box {
-    z-index: 998;
+    z-index: 999;
     position: fixed;
 }
 .d-dialog-box.z-full {

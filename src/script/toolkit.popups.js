@@ -25,15 +25,17 @@ define([
 
                 if (type == 'msg') {
                     clearTimeout(main.timer);
-                } else {
+                } else if (type == 'dialog') {
                     $('.d-popups-layer').addClass('an-fadeout');
                 }
 
                 setTimeout(function() {
-                    obj.remove();
-                    if (type != 'msg') {
+                    if (type == 'loading') {
+                        obj.parent().css('position', obj.attr('position'));
+                    } else if (type == 'dialog') {
                         $('.d-popups-layer').remove();
                     }
+                    obj.remove();
                 }, 300);
             }
         }
@@ -67,6 +69,24 @@ define([
     }
     
     var main = {
+        loading: function(opt) {
+            opt = $.extend({
+                box: 'body'
+            }, opt || {});
+
+            var $box = $(opt.box), position = $box.css('position');
+            if (['static', 'inherit'].includes(position)) {
+                $box.css('position', 'relative');
+            }
+
+            var $loading = $([
+                '<div class="d-loading flex-center an-fadein" position="' + position + '"></div>'
+            ].join('')).appendTo($box);
+
+            var handle = new Handle('loading', $loading);
+            return handle;
+        },
+
         message: function(opt) {
             opt = $.extend({
                 msg: '',
