@@ -157,8 +157,8 @@ require([
 					},
 					totalFormatter: function(value) {
 						return [
-							'支付宝:' + value.alipay,
-							'微信:' + value.wechat
+							'支付宝:' + (value.alipay || 0),
+							'微信:' + (value.wechat || 0)
 						];
 					}
 				}

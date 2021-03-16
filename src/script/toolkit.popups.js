@@ -63,6 +63,10 @@ define([
                     main.layer();
                 }
             }
+            
+            o.call = function(fun) {
+            	fun(this.w, this.$)
+            }
         }
 
         return o;
@@ -122,7 +126,7 @@ define([
             opt = $.extend({
                 title: '提醒消息',
                 msg: '',
-                ico: 'ask',
+                type: 'ask',
                 btns: [{
                     name: '确定',
                     className: 'hl',
@@ -141,7 +145,7 @@ define([
                 title: opt.title,
                 content: [
                     '<div class="confirm-content flex-center">',
-                        '<i class="df df-'+opt.ico+'"></i>',
+                        '<i class="df df-'+opt.type+'"></i>',
                         '<div class="flex-grow">'+opt.msg+'</div>',
                     '</div>'
                 ].join(''),
@@ -157,19 +161,23 @@ define([
                 title: '',
                 area: [1200, 900],
                 content: '',
-                btns: [{
+                btns: true,
+                move: true,
+                closeBtn: true,
+                position: 'center center',
+                callback: function() {}
+            }, opt || {});
+
+            if (opt.btns === true) {
+                opt.btns = [{
                     name: '确定',
                     className: 'hl',
                     value: 1
                 }, {
                     name: '取消',
                     value: 0
-                }],
-                move: true,
-                closeBtn: true,
-                position: 'center center',
-                callback: function() {}
-            }, opt || {});
+                }];
+            }
 
             var maxWidth = $(window).width() - 100;
             var maxHeight = $(window).height() - 300;
@@ -190,7 +198,7 @@ define([
 
             if (opt.closeBtn) {
                 $('<a title="关闭"><i class="df df-dialog-close"></i></a>').click(function() {
-                    handle.close();
+                	opt.closeType == 'hide' ? handle.hide() : handle.close();
                 }).mousedown(function(e) {
                     e.stopPropagation();
                 }).appendTo($head);
@@ -286,6 +294,9 @@ define([
                     sw = this.contentWindow;
                     s$ = sw.jQuery || undefined;
                     sw.thisDialog = $dialog;
+                    
+                    handle.w = sw;
+                    handle.$ = s$;
                 }
             }
 

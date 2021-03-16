@@ -263,3 +263,12 @@ td,
 .d-main.has-right.scroll-x > table td:nth-last-child(1) {
     display: table-cell;
 }
+
+.d-grid-body .empty {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 14px;
+    color: #999;
+    transform: translate(-50%, -50%);
+}

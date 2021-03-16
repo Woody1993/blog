@@ -805,7 +805,8 @@ define([
 			this.data = [];
 			this.root.body.main.table.dom.html('');
 			this.root.body.left.table.dom.html('');
-			this.root.body.right.table.dom.html('');
+            this.root.body.right.table.dom.html('');
+            this.root.empty && this.root.empty.remove();
             this.allChk && this.allChk.check(false);
 
             if (!this.crtData.key) {
@@ -813,7 +814,11 @@ define([
             }
 
 			var create = function (data, countData, total) {
-				me.pushRows(data);
+                if (!data.length) {
+                    this.root.empty = $('<p class="empty">暂无数据</p>').appendTo(this.root.body.main.dom);
+                } else {
+                    me.pushRows(data);
+                }
 
 				if (opt.countBar) {
 					this.root.foot.main.table.dom.html(createCount.call(me, this.colsModel.main, data, countData));
@@ -1011,9 +1016,8 @@ define([
 		getRowsFrom: function(fun) {
             var data = [];
             this.getAllRows().each(function() {
-                var data = this.getData();
-                if (!!fun.call(this, data)) {
-                    data.push(data)
+                if (!!fun.call(this, this.getData()[0])) {
+                	data.push(this.rows[0])
                 }
             })
 			return new rowsHandle(this, data);
